@@ -1,0 +1,1170 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>数据分析 Skill 开发手册</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        :root {
+            --arcoblue-1: #E8F3FF; --arcoblue-2: #BEDAFF; --arcoblue-3: #94BFFF;
+            --arcoblue-4: #6AA1FF; --arcoblue-5: #4080FF; --arcoblue-6: #165DFF;
+            --arcoblue-7: #0E42D2; --arcoblue-8: #072CA6; --arcoblue-9: #03197A; --arcoblue-10: #000D4D;
+            --gray-1: #F7F8FA; --gray-2: #F2F3F5; --gray-3: #E5E6EB; --gray-4: #C9CDD4;
+            --gray-5: #A9AEB8; --gray-6: #86909C; --gray-7: #6B7785; --gray-8: #4E5969;
+            --gray-9: #272E3B; --gray-10: #1D2129;
+            --green-1: #E8FFEA; --green-6: #00B42A;
+            --orange-1: #FFF7E8; --orange-6: #FF7D00;
+            --red-1: #FFECE8; --red-6: #F53F3F;
+            --purple-1: #F5E8FF; --purple-6: #722ED1;
+            --cyan-1: #E8FFFB; --cyan-6: #0FC6C2;
+            --shadow-1: 0 1px 2px 0 rgba(0,0,0,0.05);
+            --shadow-2: 0 3px 6px -2px rgba(0,0,0,0.06), 0 6px 12px 0 rgba(0,0,0,0.04), 0 11px 20px 0 rgba(0,0,0,0.03);
+            --radius-large: 8px; --radius-xlarge: 12px;
+            --color-brand: var(--arcoblue-6); --color-brand-light: var(--arcoblue-1);
+            --color-success: var(--green-6); --color-success-light: var(--green-1);
+            --color-warning: var(--orange-6); --color-warning-light: var(--orange-1);
+            --color-danger: var(--red-6); --color-danger-light: var(--red-1);
+            --color-purple: var(--purple-6); --color-purple-light: var(--purple-1);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+            background: var(--gray-1);
+            color: var(--gray-10);
+            font-size: 14px;
+            line-height: 22px;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* ===== Layout: Sidebar + Content ===== */
+        .layout {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 240px;
+            background: #fff;
+            border-right: 1px solid var(--gray-3);
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            overflow-y: auto;
+            z-index: 40;
+            padding: 24px 0;
+        }
+
+        .sidebar-brand {
+            padding: 0 20px 20px;
+            border-bottom: 1px solid var(--gray-2);
+            margin-bottom: 12px;
+        }
+        .sidebar-brand h2 {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--gray-10);
+            line-height: 22px;
+        }
+        .sidebar-brand p {
+            font-size: 11px;
+            color: var(--gray-5);
+            margin-top: 2px;
+        }
+
+        .sidebar-section {
+            padding: 4px 12px;
+            margin-bottom: 4px;
+        }
+        .sidebar-section-title {
+            font-size: 10px;
+            font-weight: 700;
+            color: var(--gray-5);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            padding: 8px 8px 4px;
+        }
+        .sidebar-link {
+            display: block;
+            padding: 6px 8px;
+            font-size: 13px;
+            color: var(--gray-7);
+            text-decoration: none;
+            border-radius: 4px;
+            transition: all 0.15s;
+            line-height: 20px;
+        }
+        .sidebar-link:hover { background: var(--gray-1); color: var(--gray-10); }
+        .sidebar-link.active { background: var(--color-brand-light); color: var(--color-brand); font-weight: 600; }
+        .sidebar-link .step-badge {
+            display: inline-block;
+            width: 18px;
+            height: 18px;
+            line-height: 18px;
+            text-align: center;
+            font-size: 10px;
+            font-weight: 700;
+            background: var(--gray-2);
+            color: var(--gray-6);
+            border-radius: 50%;
+            margin-right: 6px;
+        }
+        .sidebar-link.active .step-badge { background: var(--color-brand); color: #fff; }
+
+        /* Content */
+        .content {
+            margin-left: 240px;
+            flex: 1;
+            min-width: 0;
+        }
+
+        .content-header {
+            background: #fff;
+            border-bottom: 1px solid var(--gray-3);
+            padding: 20px 32px;
+            position: sticky;
+            top: 0;
+            z-index: 30;
+        }
+        .content-header h1 {
+            font-size: 18px;
+            font-weight: 700;
+        }
+        .content-header .breadcrumb {
+            font-size: 12px;
+            color: var(--gray-5);
+            margin-top: 2px;
+        }
+
+        .content-body {
+            max-width: 820px;
+            margin: 0 auto;
+            padding: 32px 32px 80px;
+        }
+
+        /* ===== Section ===== */
+        .section {
+            margin-bottom: 48px;
+            scroll-margin-top: 80px;
+        }
+
+        .section-tag {
+            display: inline-flex;
+            align-items: center;
+            height: 24px;
+            padding: 0 8px;
+            border-radius: 2px;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.03em;
+            margin-bottom: 12px;
+        }
+        .tag-brand { background: var(--color-brand-light); color: var(--color-brand); }
+        .tag-success { background: var(--color-success-light); color: var(--color-success); }
+        .tag-warning { background: var(--color-warning-light); color: var(--color-warning); }
+        .tag-danger { background: var(--color-danger-light); color: var(--color-danger); }
+        .tag-purple { background: var(--color-purple-light); color: var(--color-purple); }
+        .tag-cyan { background: var(--cyan-1); color: var(--cyan-6); }
+
+        h2 {
+            font-size: 22px;
+            line-height: 30px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: var(--gray-10);
+        }
+        h3 {
+            font-size: 17px;
+            line-height: 24px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--gray-10);
+            scroll-margin-top: 80px;
+        }
+        h4 {
+            font-size: 14px;
+            line-height: 22px;
+            font-weight: 600;
+            margin-bottom: 6px;
+            color: var(--gray-10);
+        }
+        p { color: var(--gray-8); margin-bottom: 12px; }
+
+        /* ===== Card ===== */
+        .card {
+            background: #fff;
+            border: 1px solid var(--gray-3);
+            border-radius: var(--radius-xlarge);
+            padding: 24px;
+            box-shadow: var(--shadow-1);
+        }
+        .card-flat {
+            background: #fff;
+            border: 1px solid var(--gray-3);
+            border-radius: var(--radius-xlarge);
+            padding: 24px;
+        }
+
+        /* ===== Grid ===== */
+        .grid { display: grid; gap: 16px; }
+        .grid-2 { grid-template-columns: 1fr 1fr; }
+        .grid-3 { grid-template-columns: 1fr 1fr 1fr; }
+
+        /* ===== Table ===== */
+        table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        th { text-align: left; padding: 10px 14px; font-weight: 600; color: var(--gray-10); background: var(--gray-1); border-bottom: 1px solid var(--gray-3); font-size: 12px; }
+        td { padding: 10px 14px; color: var(--gray-8); border-bottom: 1px solid var(--gray-2); line-height: 20px; font-size: 13px; }
+        tr:last-child td { border-bottom: none; }
+        tr:hover td { background: rgba(22,93,255,0.02); }
+
+        /* ===== Code Block ===== */
+        .code-block {
+            background: var(--gray-9);
+            color: #e2e8f0;
+            border-radius: var(--radius-large);
+            padding: 18px;
+            font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+            font-size: 12px;
+            line-height: 20px;
+            overflow-x: auto;
+            margin: 12px 0;
+            position: relative;
+        }
+        .code-block .c { color: var(--gray-6); }
+        .code-block .k { color: var(--arcoblue-4); }
+        .code-block .s { color: #5FD87A; }
+        .code-block .h { color: var(--orange-6); }
+        .code-copy {
+            position: absolute; top: 8px; right: 8px;
+            width: 26px; height: 26px; border-radius: 4px;
+            background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.1);
+            color: rgba(255,255,255,0.5); font-size: 11px; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            transition: all 0.15s; opacity: 0;
+        }
+        .code-block:hover .code-copy { opacity: 1; }
+        .code-copy:hover { background: rgba(255,255,255,0.15); color: rgba(255,255,255,0.8); }
+        .code-copy.copied { background: var(--color-success); border-color: var(--color-success); color: #fff; }
+
+        /* ===== Callout ===== */
+        .callout {
+            border-radius: var(--radius-large);
+            padding: 14px 18px;
+            margin: 12px 0;
+            display: flex;
+            gap: 10px;
+            align-items: flex-start;
+            font-size: 13px;
+            line-height: 20px;
+        }
+        .callout .icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+        .callout p { margin: 0; }
+        .callout strong { color: var(--gray-10); }
+        .callout-info { background: var(--color-brand-light); border-left: 3px solid var(--color-brand); }
+        .callout-success { background: var(--color-success-light); border-left: 3px solid var(--color-success); }
+        .callout-warning { background: var(--color-warning-light); border-left: 3px solid var(--color-warning); }
+        .callout-danger { background: var(--color-danger-light); border-left: 3px solid var(--color-danger); }
+
+        /* ===== Step Header ===== */
+        .step-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--gray-2);
+        }
+        .step-num {
+            width: 32px; height: 32px;
+            background: linear-gradient(135deg, var(--color-brand), var(--arcoblue-7));
+            color: #fff; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 14px; font-weight: 700; flex-shrink: 0;
+            box-shadow: 0 2px 8px rgba(22,93,255,0.2);
+        }
+        .step-header h3 { margin-bottom: 0; }
+        .step-header .step-time {
+            margin-left: auto;
+            font-size: 12px;
+            color: var(--gray-5);
+            white-space: nowrap;
+        }
+
+        /* ===== Timeline ===== */
+        .timeline { position: relative; padding-left: 32px; }
+        .timeline::before {
+            content: ''; position: absolute; left: 6px; top: 6px; bottom: 6px;
+            width: 2px; background: linear-gradient(to bottom, var(--color-brand), var(--color-brand-light), var(--gray-3));
+        }
+        .timeline-item { position: relative; margin-bottom: 24px; }
+        .timeline-item::before {
+            content: ''; position: absolute; left: -29px; top: 5px;
+            width: 8px; height: 8px; border-radius: 50%;
+            background: var(--color-brand); border: 2px solid var(--color-brand-light);
+        }
+        .timeline-item h4 { margin-bottom: 4px; }
+
+        /* ===== Feature Card ===== */
+        .feature-card {
+            background: #fff; border: 1px solid var(--gray-3);
+            border-radius: var(--radius-xlarge); padding: 24px 20px; text-align: center;
+            box-shadow: var(--shadow-1); transition: box-shadow 0.2s, transform 0.15s;
+        }
+        .feature-card:hover { box-shadow: var(--shadow-2); transform: translateY(-1px); }
+        .feature-card .icon { font-size: 28px; margin-bottom: 10px; }
+        .feature-card h4 { font-size: 14px; margin-bottom: 6px; }
+        .feature-card p { font-size: 12px; color: var(--gray-6); margin: 0; line-height: 18px; }
+
+        /* ===== VS Grid ===== */
+        .vs-grid { display: grid; grid-template-columns: 1fr 36px 1fr; gap: 0; align-items: stretch; }
+        .vs-card { border-radius: var(--radius-xlarge); padding: 20px; }
+        .vs-card.before { background: var(--color-danger-light); border: 1px solid rgba(245,63,63,0.1); }
+        .vs-card.after { background: var(--color-success-light); border: 1px solid rgba(0,180,42,0.1); }
+        .vs-card .label { font-size: 12px; font-weight: 700; margin-bottom: 12px; }
+        .vs-card.before .label { color: var(--color-danger); }
+        .vs-card.after .label { color: var(--color-success); }
+        .vs-card li { font-size: 13px; line-height: 20px; color: var(--gray-8); margin-bottom: 6px; margin-left: 18px; }
+        .vs-card li strong { color: var(--gray-10); }
+        .vs-divider { display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 800; color: var(--gray-5); }
+
+        /* ===== Flow ===== */
+        .flow { display: flex; align-items: center; justify-content: center; gap: 6px; flex-wrap: wrap; margin: 16px 0; }
+        .flow-node {
+            background: #fff; border: 1px solid var(--gray-3); border-radius: var(--radius-large);
+            padding: 8px 14px; font-size: 12px; font-weight: 500; color: var(--gray-7);
+            box-shadow: var(--shadow-1); white-space: nowrap;
+        }
+        .flow-node.highlight { border-color: var(--color-brand); background: var(--color-brand-light); color: var(--color-brand); font-weight: 600; }
+        .flow-arrow { color: var(--gray-5); font-size: 14px; }
+
+        /* ===== FAQ ===== */
+        .faq-item {
+            border: 1px solid var(--gray-3); border-radius: var(--radius-large);
+            margin-bottom: 6px; overflow: hidden; transition: box-shadow 0.2s;
+        }
+        .faq-item:hover { box-shadow: var(--shadow-1); }
+        .faq-question {
+            padding: 14px 18px; font-weight: 600; font-size: 13px; cursor: pointer;
+            display: flex; justify-content: space-between; align-items: center;
+            background: #fff; user-select: none;
+        }
+        .faq-question .faq-toggle {
+            font-size: 16px; color: var(--gray-5); transition: transform 0.25s;
+            flex-shrink: 0; margin-left: 12px;
+        }
+        .faq-item.open .faq-toggle { transform: rotate(45deg); }
+        .faq-answer {
+            max-height: 0; overflow: hidden;
+            transition: max-height 0.35s cubic-bezier(0.16, 1, 0.3, 1), padding 0.35s;
+            padding: 0 18px; background: var(--gray-1); font-size: 13px; color: var(--gray-8); line-height: 20px;
+        }
+        .faq-item.open .faq-answer { max-height: 400px; padding: 14px 18px; }
+
+        /* ===== Checklist ===== */
+        .checklist-item {
+            display: flex; align-items: flex-start; gap: 10px;
+            margin-bottom: 10px; font-size: 13px;
+        }
+        .checklist-item .check {
+            width: 18px; height: 18px; border: 2px solid var(--gray-4);
+            border-radius: 3px; flex-shrink: 0; margin-top: 1px;
+            cursor: pointer; transition: all 0.15s;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 11px; color: transparent;
+        }
+        .checklist-item .check.checked {
+            background: var(--color-success); border-color: var(--color-success); color: #fff;
+        }
+        .checklist-item .check-text.done { color: var(--gray-5); text-decoration: line-through; }
+
+        /* ===== Quick Nav (top) ===== */
+        .quick-nav {
+            display: flex; gap: 8px; flex-wrap: wrap;
+            margin-bottom: 32px; padding: 16px; background: #fff;
+            border: 1px solid var(--gray-3); border-radius: var(--radius-xlarge);
+        }
+        .quick-nav a {
+            display: inline-flex; align-items: center; gap: 4px;
+            padding: 4px 10px; font-size: 12px; font-weight: 500;
+            color: var(--gray-7); text-decoration: none;
+            border: 1px solid var(--gray-3); border-radius: 4px;
+            transition: all 0.15s;
+        }
+        .quick-nav a:hover { border-color: var(--color-brand); color: var(--color-brand); background: var(--color-brand-light); }
+        .quick-nav a .qn-num {
+            width: 16px; height: 16px; line-height: 16px; text-align: center;
+            font-size: 10px; font-weight: 700; background: var(--gray-2);
+            color: var(--gray-6); border-radius: 50%;
+        }
+        .quick-nav a:hover .qn-num { background: var(--color-brand); color: #fff; }
+
+        /* ===== Footer ===== */
+        .manual-footer {
+            padding: 32px; text-align: center;
+            color: var(--gray-5); font-size: 11px; line-height: 18px;
+            border-top: 1px solid var(--gray-2); margin-top: 48px;
+        }
+
+        /* ===== Responsive ===== */
+        @media (max-width: 900px) {
+            .sidebar { display: none; }
+            .content { margin-left: 0; }
+        }
+        @media (max-width: 640px) {
+            .grid-2, .grid-3 { grid-template-columns: 1fr; }
+            .content-body { padding: 20px 16px 60px; }
+            .vs-grid { grid-template-columns: 1fr; gap: 8px; }
+            .vs-divider { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="layout">
+    <!-- ===== Sidebar ===== -->
+    <nav class="sidebar" id="sidebar">
+        <div class="sidebar-brand">
+            <h2>📖 数据分析 Skill<br>开发手册</h2>
+            <p>WorkBuddy · 2026.05</p>
+        </div>
+
+        <div class="sidebar-section">
+            <div class="sidebar-section-title">快速入口</div>
+            <a href="#quick-start" class="sidebar-link">🚀 快速上手（10 分钟版）</a>
+            <a href="#template" class="sidebar-link">📋 SKILL.md 模板</a>
+            <a href="#checklist" class="sidebar-link">✅ 上线 Checklist</a>
+        </div>
+
+        <div class="sidebar-section">
+            <div class="sidebar-section-title">SOP 六步流程</div>
+            <a href="#step1" class="sidebar-link"><span class="step-badge">1</span>埋点规划</a>
+            <a href="#step2" class="sidebar-link"><span class="step-badge">2</span>开发 API</a>
+            <a href="#step3" class="sidebar-link"><span class="step-badge">3</span>封装 Skill</a>
+            <a href="#step4" class="sidebar-link"><span class="step-badge">4</span>权限并发</a>
+            <a href="#step5" class="sidebar-link"><span class="step-badge">5</span>兜底策略</a>
+            <a href="#step6" class="sidebar-link"><span class="step-badge">6</span>测试上线</a>
+        </div>
+
+        <div class="sidebar-section">
+            <div class="sidebar-section-title">参考</div>
+            <a href="#pitfalls" class="sidebar-link">🔴 常见踩坑</a>
+            <a href="#auth-ref" class="sidebar-link">🔑 认证速查</a>
+            <a href="#install" class="sidebar-link">📥 安装方式</a>
+            <a href="#compat" class="sidebar-link">🌐 跨平台兼容</a>
+            <a href="#faq" class="sidebar-link">❓ FAQ</a>
+        </div>
+    </nav>
+
+    <!-- ===== Content ===== -->
+    <div class="content">
+        <div class="content-header">
+            <h1>数据分析 Skill 开发手册</h1>
+            <div class="breadcrumb">WorkBuddy Skill · 从 API 到可用 Skill 的完整操作指南</div>
+        </div>
+
+        <div class="content-body">
+
+            <!-- Quick Nav -->
+            <div class="quick-nav" id="quick-start">
+                <a href="#step1"><span class="qn-num">1</span> 埋点规划</a>
+                <a href="#step2"><span class="qn-num">2</span> 开发 API</a>
+                <a href="#step3"><span class="qn-num">3</span> 封装 Skill</a>
+                <a href="#step4"><span class="qn-num">4</span> 权限并发</a>
+                <a href="#step5"><span class="qn-num">5</span> 兜底策略</a>
+                <a href="#step6"><span class="qn-num">6</span> 测试上线</a>
+                <a href="#template">📋 模板</a>
+                <a href="#pitfalls">🔴 踩坑</a>
+                <a href="#faq">❓ FAQ</a>
+            </div>
+
+            <!-- ===== Quick Start ===== -->
+            <div class="section">
+                <span class="section-tag tag-brand">快速上手</span>
+                <h2>10 分钟做出你的第一个 Skill</h2>
+                <p>如果你已经有现成 API，按照以下 3 步即可完成。详细说明见下方 SOP。</p>
+
+                <div class="card-flat" style="padding:20px; margin-bottom:16px;">
+                    <div style="display:flex; gap:16px; align-items:flex-start; margin-bottom:12px;">
+                        <span style="width:28px;height:28px;background:var(--color-brand);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;">1</span>
+                        <div>
+                            <strong>找到 API 并用 curl 调通</strong>
+                            <p style="margin:4px 0 0;font-size:13px;color:var(--gray-6);">找后端拿到 API 地址和认证方式，手动 curl 验证能返回数据</p>
+                        </div>
+                    </div>
+                    <div style="display:flex; gap:16px; align-items:flex-start; margin-bottom:12px;">
+                        <span style="width:28px;height:28px;background:var(--color-brand);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;">2</span>
+                        <div>
+                            <strong>写 SKILL.md</strong>
+                            <p style="margin:4px 0 0;font-size:13px;color:var(--gray-6);">用 <a href="#template" style="color:var(--color-brand);">下方模板</a> 填入你的 API 信息，或直接把 API 信息发给 AI 让它帮你生成</p>
+                        </div>
+                    </div>
+                    <div style="display:flex; gap:16px; align-items:flex-start;">
+                        <span style="width:28px;height:28px;background:var(--color-success);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;">3</span>
+                        <div>
+                            <strong>安装测试</strong>
+                            <p style="margin:4px 0 0;font-size:13px;color:var(--gray-6);">上传到 WorkBuddy → 用自然语言测试 → 补充踩坑记录 → 让同事也试试</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="callout callout-success">
+                    <span class="icon">⏱️</span>
+                    <p><strong>耗时参考：</strong>第一个 Skill 约 1 小时（含踩坑调试），后续同类 Skill 20-30 分钟。</p>
+                </div>
+            </div>
+
+            <!-- ==================== SOP ==================== -->
+
+            <!-- ===== Step 1 ===== -->
+            <div class="section" id="step1">
+                <span class="section-tag tag-brand">SOP · Step 1</span>
+                <div class="step-header">
+                    <span class="step-num">1</span>
+                    <h3>确定数据源与埋点策略</h3>
+                    <span class="step-time">⏱ 前置工作，非 Skill 开发本身</span>
+                </div>
+                <p>不同复杂度的业务系统，埋点颗粒度不同。颗粒度越细，Skill 能分析的维度越多，但开发成本也越高。</p>
+
+                <div class="grid grid-3" style="margin-bottom:16px;">
+                    <div class="card" style="border-top:4px solid var(--color-success);">
+                        <span class="section-tag tag-success" style="margin-bottom:8px;">简单系统</span>
+                        <h4>页面级埋点</h4>
+                        <p style="font-size:12px;color:var(--gray-6);margin-bottom:8px;">如：简单审批/报名系统</p>
+                        <div style="font-size:12px;color:var(--gray-6);background:var(--gray-1);padding:8px 10px;border-radius:4px;">
+                            <strong style="color:var(--gray-10);">记录字段</strong><br>
+                            · 页面访问（PV/UV）<br>
+                            · 表单提交次数<br>
+                            · 完成率/转化率
+                        </div>
+                    </div>
+                    <div class="card" style="border-top:4px solid var(--color-brand);">
+                        <span class="section-tag tag-brand" style="margin-bottom:8px;">中等系统 ★ 本案例</span>
+                        <h4>操作级埋点</h4>
+                        <p style="font-size:12px;color:var(--gray-6);margin-bottom:8px;">如：表单平台/项目管理系统</p>
+                        <div style="font-size:12px;color:var(--gray-6);background:var(--gray-1);padding:8px 10px;border-radius:4px;">
+                            <strong style="color:var(--gray-10);">记录字段</strong><br>
+                            · 操作人（userId / 姓名）<br>
+                            · 操作类型（创建/编辑/删除/发布）<br>
+                            · 操作对象（表单/模板/项目）<br>
+                            · 操作时间（精确到秒）
+                        </div>
+                    </div>
+                    <div class="card" style="border-top:4px solid var(--color-warning);">
+                        <span class="section-tag tag-warning" style="margin-bottom:8px;">复杂系统</span>
+                        <h4>字段级埋点</h4>
+                        <p style="font-size:12px;color:var(--gray-6);margin-bottom:8px;">如：ERP/全链路平台</p>
+                        <div style="font-size:12px;color:var(--gray-6);background:var(--gray-1);padding:8px 10px;border-radius:4px;">
+                            <strong style="color:var(--gray-10);">记录字段</strong><br>
+                            · 字段变更（修改前/后值）<br>
+                            · 关联实体链路<br>
+                            · 状态流转路径<br>
+                            · 操作耗时
+                        </div>
+                    </div>
+                </div>
+
+                <div class="callout callout-success">
+                    <span class="icon">💡</span>
+                    <p><strong>实操建议：</strong>先从操作级埋点起步，能满足 80% 分析需求。字段级埋点只在确实需要"谁改了哪个字段"时才做——颗粒度越细，存储和查询成本指数级增长。</p>
+                </div>
+            </div>
+
+            <!-- ===== Step 2 ===== -->
+            <div class="section" id="step2">
+                <span class="section-tag tag-brand">SOP · Step 2</span>
+                <div class="step-header">
+                    <span class="step-num">2</span>
+                    <h3>开发查询 API</h3>
+                    <span class="step-time">⏱ 需后端配合，或复用已有 API</span>
+                </div>
+                <p>拿到埋点数据后，需要提供一个 API 让 Skill 调用。两种方案：</p>
+
+                <div class="vs-grid" style="margin-bottom:16px;">
+                    <div class="vs-card after">
+                        <div class="label">✅ 方案 A：聚合查询 API（推荐首选）</div>
+                        <ul>
+                            <li><strong>原理：</strong>服务端 SQL 聚合，返回统计结果</li>
+                        </ul>
+                        <div class="code-block" style="font-size:11px;margin:6px 0;">
+{<span class="k">"totalOps"</span>:<span class="s">429</span>, <span class="k">"activeUsers"</span>:<span class="s">45</span>,
+ <span class="k">"byUser"</span>:[{<span class="k">"name"</span>:<span class="s">"龚静"</span>,<span class="k">"count"</span>:<span class="s">70</span>}]}
+<button class="code-copy" onclick="copyCode(this)">📋</button></div>
+                        <ul>
+                            <li><span style="color:var(--color-success)">数据量小，响应快</span></li>
+                            <li><span style="color:var(--color-success)">对 AI 友好，直接出结果</span></li>
+                            <li><span style="color:var(--color-success)">服务端控制边界，安全</span></li>
+                            <li><span style="color:var(--gray-5)">查询维度需提前设计</span></li>
+                            <li><span style="color:var(--gray-5)">新增维度需改接口</span></li>
+                        </ul>
+                    </div>
+                    <div class="vs-divider">VS</div>
+                    <div class="vs-card before">
+                        <div class="label">⚠️ 方案 B：明细 JSON（本案例）</div>
+                        <ul>
+                            <li><strong>原理：</strong>返回操作明细列表，AI 端做聚合</li>
+                        </ul>
+                        <div class="code-block" style="font-size:11px;margin:6px 0;">
+[{<span class="k">"userId"</span>:<span class="s">"u001"</span>,<span class="k">"records"</span>:[
+  {<span class="k">"action"</span>:<span class="s">"创建表单"</span>,<span class="k">"time"</span>:<span class="s">"..."</span>}]}]
+<button class="code-copy" onclick="copyCode(this)">📋</button></div>
+                        <ul>
+                            <li><span style="color:var(--color-success)">数据完整，分析维度灵活</span></li>
+                            <li><span style="color:var(--color-success)">新增维度无需改接口</span></li>
+                            <li><span style="color:var(--color-success)">AI 可自由下钻</span></li>
+                            <li><span style="color:var(--color-danger)">数据量大时性能差</span></li>
+                            <li><span style="color:var(--color-danger)">依赖 AI 聚合，有 token 成本</span></li>
+                            <li><span style="color:var(--color-danger)">数据量超限需分页/兜底</span></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="card-flat" style="padding:16px;margin-bottom:12px;">
+                    <h4>📊 方案选择决策表</h4>
+                    <table>
+                        <tr><th style="width:30%">你的场景</th><th style="width:28%">推荐方案</th><th>原因</th></tr>
+                        <tr><td>用户 &lt; 100，单次记录 &lt; 500 条</td><td><strong>方案 B</strong></td><td>灵活性收益远大于性能风险</td></tr>
+                        <tr><td>用户 100~1000，记录较多</td><td><strong>方案 A + B 组合</strong></td><td>主接口 A 出概览，下钻接口 B 出明细</td></tr>
+                        <tr><td>用户 &gt; 1000 或全量 &gt; 10MB</td><td><strong>方案 A</strong></td><td>明细数据量太大，必须服务端聚合</td></tr>
+                        <tr><td>分析维度非常固定</td><td><strong>方案 A</strong></td><td>无需灵活性，聚合接口更高效</td></tr>
+                        <tr><td>分析维度多变</td><td><strong>方案 B + 兜底策略</strong></td><td>灵活性优先，但必须加 Step 5 兜底</td></tr>
+                    </table>
+                </div>
+
+                <div class="callout callout-warning">
+                    <span class="icon">⚠️</span>
+                    <p><strong>本案例选了方案 B</strong>——用户量小（&lt;100），记录量可控，但分析维度多变。如果你的系统数据量大，<strong>务必从方案 A 起步</strong>。</p>
+                </div>
+            </div>
+
+            <!-- ===== Step 3 ===== -->
+            <div class="section" id="step3">
+                <span class="section-tag tag-brand">SOP · Step 3</span>
+                <div class="step-header">
+                    <span class="step-num">3</span>
+                    <h3>将 API 封装为 Skill</h3>
+                    <span class="step-time">⏱ 10-15 分钟</span>
+                </div>
+                <p>按照以下模板编写 SKILL.md，3 个核心块缺一不可：</p>
+
+                <div class="grid grid-3" style="margin-bottom:16px;">
+                    <div class="feature-card" style="border-top:3px solid var(--color-brand);">
+                        <div class="icon">🔑</div>
+                        <h4>触发词设计</h4>
+                        <p>description 覆盖用户说法<br>"查询XX操作记录"<br>"分析XX使用情况"</p>
+                    </div>
+                    <div class="feature-card" style="border-top:3px solid var(--color-warning);">
+                        <div class="icon">⚙️</div>
+                        <h4>API 调用规范</h4>
+                        <p>URL / Method / 认证<br>完整 curl 示例<br>参数放 Body 还是 URL</p>
+                    </div>
+                    <div class="feature-card" style="border-top:3px solid var(--color-success);">
+                        <div class="icon">📐</div>
+                        <h4>输出格式</h4>
+                        <p>核心数字 + Top 排行<br>+ 趋势 + 异常标注</p>
+                    </div>
+                </div>
+
+                <div class="callout callout-info">
+                    <span class="icon">📁</span>
+                    <p><strong>目录结构：</strong>大多数 Skill 只需一个 SKILL.md。<br>
+                    <code style="font-size:12px;">your-skill/├SKILL.md └scripts/(可选) └references/(可选)</code></p>
+                </div>
+            </div>
+
+            <!-- ===== Template ===== -->
+            <div class="section" id="template">
+                <span class="section-tag tag-purple">模板</span>
+                <h2>SKILL.md 模板 & 案例</h2>
+
+                <h3 style="margin-bottom:8px;">📝 通用模板</h3>
+                <div class="code-block">
+<span class="c">---</span>
+<span class="k">name:</span> <span class="s">your-system-analytics</span>
+<span class="k">description:</span> <span class="s">查询[系统名]的[数据类型]，如"查XX的操作记录""分析XX的使用情况""对比XX的数据"</span>
+<span class="c">---</span>
+
+<span class="c"># [系统名]数据分析</span>
+
+<span class="c">## 触发条件</span>
+用户提到查询/分析/对比 [系统名] 的 [数据类型]
+
+<span class="c">## 参数提取</span>
+- <span class="k">日期范围</span>：<span class="s">startDt</span> / <span class="s">endDt</span>（YYYY-MM-DD）
+- <span class="k">筛选条件</span>：用户名 / 项目名 / 操作类型 等
+
+<span class="c">## API 信息</span>
+- <span class="k">URL</span>: <span class="s">https://your-api.com/endpoint</span>
+- <span class="k">Method</span>: POST
+- <span class="k">认证</span>: <span class="h">[参照认证速查表选择]</span>
+- <span class="k">参数位置</span>: <span class="h">Body（必须！）</span>
+
+<span class="c">## 请求示例</span>
+curl -X POST '<span class="s">https://your-api.com/endpoint</span>' \
+  -H '<span class="s">Content-Type: application/json</span>' \
+  -H '<span class="h">[认证 Header]</span>' \
+  -d '<span class="s">{"startDt":"2026-05-01","endDt":"2026-05-08"}</span>'
+
+<span class="c">## 输出格式</span>
+1. 核心数字：总操作数 / 活跃用户数 / 时间范围
+2. Top5 排行（按用户 / 按项目）
+3. 趋势描述 + 异常标注
+4. 追问可下钻到具体明细
+
+<span class="c">## 注意事项（踩坑记录）</span>
+1. <span class="h">[你的踩坑 1]</span>
+2. <span class="h">[你的踩坑 2]</span>
+3. 数据量超过 [X] 条时，建议加时间范围缩小查询
+<button class="code-copy" onclick="copyCode(this)">📋</button></div>
+
+                <h3 style="margin:20px 0 8px;">📝 实际案例：用户操作记录 Skill</h3>
+                <div class="code-block">
+<span class="c">---</span>
+<span class="k">name:</span> <span class="s">user-operation-records</span>
+<span class="k">description:</span> <span class="s">查询用户在指定日期范围内的操作记录（表单和模板操作）</span>
+<span class="c">---</span>
+
+<span class="c"># 查询用户操作记录</span>
+
+<span class="c">## 触发条件</span>
+用户说<span class="s">"查询XXX的操作记录"</span>、<span class="s">"查一下XXX的操作记录"</span>等
+
+<span class="c">## 参数提取</span>
+- <span class="k">日期范围</span>：<span class="s">startDt</span> 和 <span class="s">endDt</span>，格式 <span class="s">YYYY-MM-DD</span>
+- <span class="k">用户名</span>：如<span class="s">"徐琦"</span>等中文姓名
+
+<span class="c">## API 信息</span>
+- <span class="k">URL</span>: <span class="s">https://www.duiopen.com/ai-protocol-hub/internal/userOperationRecords</span>
+- <span class="k">Method</span>: POST
+- <span class="k">认证</span>: <span class="h">Cookie: userId=1000002201</span>
+
+<span class="c">## 请求示例</span>
+curl -X POST '<span class="s">https://www.duiopen.com/ai-protocol-hub/internal/userOperationRecords</span>' \
+  -H '<span class="s">Content-Type: application/json</span>' \
+  -H '<span class="h">Cookie: userId=1000002201</span>' \
+  -d '<span class="s">{"startDt":"2026-04-20","endDt":"2026-04-26"}</span>'
+
+<span class="c">## 注意事项</span>
+1. <span class="h">认证必选</span>：无认证返回 401
+2. <span class="h">日期参数必须放 body</span>：放 URL 会 OOM
+3. 不带 body 会 400
+4. 只支持 Cookie 认证，不支持 API Key
+<button class="code-copy" onclick="copyCode(this)">📋</button></div>
+
+                <h3 style="margin:20px 0 8px;">🤖 让 AI 帮你生成 SKILL.md</h3>
+                <div class="code-block">
+请帮我创建一个数据分析类 Skill 的 SKILL.md：
+
+1. <strong>系统名称</strong>：[你的业务系统名，如"审批系统"]
+2. <strong>API 地址</strong>：[你的 API URL]
+3. <strong>请求方式</strong>：[GET/POST]
+4. <strong>认证方式</strong>：[Cookie / Bearer Token / API Key]，认证参数：[具体值]
+5. <strong>请求参数</strong>：[参数名、类型、是否必填]
+6. <strong>返回数据示例</strong>：[贴一段 API 返回的 JSON]
+7. <strong>用户可能的说法</strong>：[同事平时怎么问的]
+<button class="code-copy" onclick="copyCode(this)">📋</button></div>
+                <div class="callout callout-warning">
+                    <span class="icon">⚠️</span>
+                    <p><strong>AI 生成后必做：</strong>1) 确认触发词覆盖了同事的说法 2) 用 curl 实际调一次验证 3) 把踩到的坑补进注意事项。不要在 Prompt 中传真实 Token。</p>
+                </div>
+            </div>
+
+            <!-- ===== Step 4 ===== -->
+            <div class="section" id="step4">
+                <span class="section-tag tag-brand">SOP · Step 4</span>
+                <div class="step-header">
+                    <span class="step-num">4</span>
+                    <h3>并发控制与权限管理</h3>
+                    <span class="step-time">⏱ 视情况，可后补</span>
+                </div>
+
+                <div class="grid grid-2" style="margin-bottom:12px;">
+                    <div class="card-flat" style="padding:16px;border-left:4px solid var(--color-brand);">
+                        <h4 style="color:var(--color-brand);margin-bottom:10px;">⚡ 并发控制</h4>
+                        <table>
+                            <tr><td><strong>请求限频</strong></td><td>10 次/分钟，防 AI 高频调用</td></tr>
+                            <tr><td><strong>结果缓存</strong></td><td>相同查询 5min 内返回缓存</td></tr>
+                            <tr><td><strong>超时熔断</strong></td><td>API &gt; 10s 自动降级</td></tr>
+                        </table>
+                        <div class="code-block" style="font-size:11px;margin-top:8px;">
+<span class="c">## 并发策略</span>
+同一用户 5 分钟内重复查询，直接使用缓存结果。
+<button class="code-copy" onclick="copyCode(this)">📋</button></div>
+                    </div>
+                    <div class="card-flat" style="padding:16px;border-left:4px solid var(--color-warning);">
+                        <h4 style="color:var(--color-warning);margin-bottom:10px;">🔒 权限管理</h4>
+                        <table>
+                            <tr><td><strong>数据隔离</strong></td><td>按 userId 过滤</td></tr>
+                            <tr><td><strong>角色分级</strong></td><td>管理员看全量，普通用户看本部门</td></tr>
+                            <tr><td><strong>脱敏规则</strong></td><td>手机号/身份证 API 层脱敏</td></tr>
+                        </table>
+                        <div class="code-block" style="font-size:11px;margin-top:8px;">
+<span class="c">## 权限说明</span>
+该 API 通过 Cookie userId 做数据隔离，
+每个用户只能查看自己所属项目的数据。
+<button class="code-copy" onclick="copyCode(this)">📋</button></div>
+                    </div>
+                </div>
+
+                <div class="callout callout-warning">
+                    <span class="icon">⚠️</span>
+                    <p><strong>Cookie/Session 认证的注意：</strong>Skill 中 userId 固定意味着<strong>所有使用者共享同一账号的数据权限</strong>。如需按人隔离，必须改为 Bearer Token 或 OAuth，在 SKILL.md 中引导用户替换自己的 Token。</p>
+                </div>
+            </div>
+
+            <!-- ===== Step 5 ===== -->
+            <div class="section" id="step5">
+                <span class="section-tag tag-brand">SOP · Step 5</span>
+                <div class="step-header">
+                    <span class="step-num">5</span>
+                    <h3>大数据量兜底策略</h3>
+                    <span class="step-time">⏱ 5 分钟写入 SKILL.md</span>
+                </div>
+                <p>5 道防线，按优先级排序：</p>
+
+                <div class="timeline" style="margin-bottom:16px;">
+                    <div class="timeline-item">
+                        <h4>🛡️ 防线 1：强制时间范围</h4>
+                        <p>用户未指定时<strong>默认查最近 7 天</strong>，单次跨度不超过 90 天。</p>
+                        <div class="code-block" style="font-size:11px;">
+<span class="c">## 默认行为</span>
+用户未指定日期时，默认查询最近 7 天。
+单次查询跨度不超过 90 天。
+<button class="code-copy" onclick="copyCode(this)">📋</button></div>
+                    </div>
+                    <div class="timeline-item">
+                        <h4>🛡️ 防线 2：分页 / 游标</h4>
+                        <p>单次返回最多 200 条，AI 多轮调用拼全。</p>
+                        <div class="code-block" style="font-size:11px;">
+{<span class="s">"startDt"</span>:<span class="s">"2026-05-01"</span>,<span class="s">"endDt"</span>:<span class="s">"2026-05-08"</span>,<span class="s">"pageSize"</span>:200,<span class="s">"pageNo"</span>:1}
+<button class="code-copy" onclick="copyCode(this)">📋</button></div>
+                    </div>
+                    <div class="timeline-item">
+                        <h4>🛡️ 防线 3：自动降级</h4>
+                        <p>数据量 &gt; 500 条时，只返回 Top10 排行和趋势摘要。</p>
+                        <div class="code-block" style="font-size:11px;">
+<span class="c">## 降级策略</span>
+返回数据超过 500 条时，只展示 Top10 和趋势摘要，
+提示"数据量较大，已自动汇总，如需明细请缩小时间范围"。
+<button class="code-copy" onclick="copyCode(this)">📋</button></div>
+                    </div>
+                    <div class="timeline-item">
+                        <h4>🛡️ 防线 4：超时兜底</h4>
+                        <p>API 超时 30s 后返回友好提示。</p>
+                    </div>
+                    <div class="timeline-item">
+                        <h4>🛡️ 防线 5：异步查询</h4>
+                        <p>极端场景用异步模式：提交任务 → 返回任务 ID → 轮询结果。日常查询用前 4 道防线足够。</p>
+                    </div>
+                </div>
+
+                <div class="card-flat" style="padding:14px;">
+                    <h4>📊 兜底策略速查</h4>
+                    <table>
+                        <tr><th>数据规模</th><th>推荐防线</th><th>SKILL.md 要写什么</th></tr>
+                        <tr><td><strong>&lt; 500 条/次</strong></td><td>防线 1</td><td>默认查 7 天 + 提示可扩大</td></tr>
+                        <tr><td><strong>500 ~ 5000</strong></td><td>防线 1 + 2</td><td>加分页参数 + 默认页大小</td></tr>
+                        <tr><td><strong>5000 ~ 5 万</strong></td><td>防线 1 + 2 + 3</td><td>加分页 + 降级阈值 + 提示语</td></tr>
+                        <tr><td><strong>&gt; 5 万</strong></td><td>全部 5 道</td><td>考虑改用方案 A + 异步导出</td></tr>
+                    </table>
+                </div>
+            </div>
+
+            <!-- ===== Step 6 ===== -->
+            <div class="section" id="step6">
+                <span class="section-tag tag-brand">SOP · Step 6</span>
+                <div class="step-header">
+                    <span class="step-num">6</span>
+                    <h3>测试验收与上线</h3>
+                    <span class="step-time">⏱ 10-15 分钟</span>
+                </div>
+
+                <div class="grid grid-2" style="margin-bottom:12px;">
+                    <div>
+                        <h4>✅ 专项测试清单</h4>
+                        <div class="card-flat" style="padding:0;overflow:hidden;">
+                            <table>
+                                <tr><td><strong>触发测试</strong></td><td>3 种不同说法能否触发</td></tr>
+                                <tr><td><strong>日期解析</strong></td><td>"上周"/"最近3天"/精确日期</td></tr>
+                                <tr><td><strong>认证通过</strong></td><td>API 是否正常返回</td></tr>
+                                <tr><td><strong>空结果</strong></td><td>查无数据时是否友好提示</td></tr>
+                                <tr><td><strong>大数据量</strong></td><td>查 3 个月是否触发降级</td></tr>
+                                <tr><td><strong>权限隔离</strong></td><td>不同用户只能看自己数据</td></tr>
+                                <tr><td><strong>异常输入</strong></td><td>未来日期/负数/特殊字符</td></tr>
+                            </table>
+                        </div>
+                    </div>
+                    <div>
+                        <h4>🚀 上线 Checklist</h4>
+                        <div class="card-flat" style="padding:16px;" id="checklist">
+                            <div class="checklist-item" onclick="toggleCheck(this)">
+                                <span class="check">✓</span>
+                                <span class="check-text">触发词覆盖至少 3 种用户说法</span>
+                            </div>
+                            <div class="checklist-item" onclick="toggleCheck(this)">
+                                <span class="check">✓</span>
+                                <span class="check-text">API 调用示例包含完整 curl 命令</span>
+                            </div>
+                            <div class="checklist-item" onclick="toggleCheck(this)">
+                                <span class="check">✓</span>
+                                <span class="check-text">注意事项中记录了至少 1 个踩坑点</span>
+                            </div>
+                            <div class="checklist-item" onclick="toggleCheck(this)">
+                                <span class="check">✓</span>
+                                <span class="check-text">大数据量兜底策略已写入 SKILL.md</span>
+                            </div>
+                            <div class="checklist-item" onclick="toggleCheck(this)">
+                                <span class="check">✓</span>
+                                <span class="check-text">让不了解系统的同事试用，能否正常触发</span>
+                            </div>
+                            <div class="checklist-item" onclick="toggleCheck(this)">
+                                <span class="check">✓</span>
+                                <span class="check-text">安装到同事的 WorkBuddy 并验证</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card-flat" style="padding:16px;background:var(--color-brand-light);border-color:rgba(22,93,255,0.12);">
+                    <h4 style="margin-bottom:10px;color:var(--color-brand);">📌 其他关键事项</h4>
+                    <div class="grid grid-3" style="gap:12px;">
+                        <div style="font-size:12px;"><strong>🔄 错误重试</strong><br>最多重试 1 次，区分服务端错误和参数错误</div>
+                        <div style="font-size:12px;"><strong>🛡️ 数据安全</strong><br>敏感字段 API 层脱敏，不硬编码 Token</div>
+                        <div style="font-size:12px;"><strong>📦 版本兼容</strong><br>记录 API 版本号，字段变更同步更新 Skill</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ==================== Pitfalls ==================== -->
+            <div class="section" id="pitfalls">
+                <span class="section-tag tag-danger">常见踩坑</span>
+                <h2>实战踩坑 & 解决方案</h2>
+                <p>全部来自真实开发经历，提前了解可大幅缩短调试时间</p>
+
+                <div class="grid" style="gap:12px;margin-bottom:16px;">
+                    <div class="card-flat" style="border-left:4px solid var(--color-danger);">
+                        <h4 style="color:var(--color-danger);">🔴 401 Unauthorized</h4>
+                        <p><strong>场景：</strong>调用 API 返回 401"游客身份没有权限"<br>
+                        <strong>原因：</strong>只支持 Cookie 认证，不支持 Bearer Token / API Key<br>
+                        <strong>解决：</strong>请求头加 <code>Cookie: userId=xxx</code></p>
+                    </div>
+                    <div class="card-flat" style="border-left:4px solid var(--color-danger);">
+                        <h4 style="color:var(--color-danger);">🔴 服务端 OOM</h4>
+                        <p><strong>场景：</strong>日期参数放 URL query 导致内存溢出<br>
+                        <strong>原因：</strong>query 参数走了不同代码路径，加载全量数据<br>
+                        <strong>解决：</strong>日期参数必须放 JSON Body</p>
+                        <div class="code-block" style="font-size:11px;margin-top:8px;">
+<span class="c"># ❌ 参数放 URL → OOM</span>
+curl '...?startDt=2026-04-01&endDt=2026-04-30'
+<span class="c"># ✅ 参数放 Body → 正常</span>
+curl ... -d '<span class="s">{"startDt":"2026-04-01","endDt":"2026-04-30"}</span>'
+<button class="code-copy" onclick="copyCode(this)">📋</button></div>
+                    </div>
+                    <div class="grid grid-2" style="gap:12px;">
+                        <div class="card-flat" style="border-left:4px solid var(--color-warning);">
+                            <h4 style="color:var(--color-warning);">🟡 400 Bad Request</h4>
+                            <p><strong>原因：</strong>不带 Body 或 Body 格式错误<br><strong>解决：</strong>必须传 <code>{"startDt":"...","endDt":"..."}</code></p>
+                        </div>
+                        <div class="card-flat" style="border-left:4px solid var(--color-warning);">
+                            <h4 style="color:var(--color-warning);">🟡 Skill 没被触发</h4>
+                            <p><strong>原因：</strong>用户表述不在触发词覆盖范围<br><strong>解决：</strong>持续补充 description 中的关键词</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card-flat" style="padding:16px;border-left:4px solid var(--color-brand);">
+                    <h4 style="color:var(--color-brand);margin-bottom:6px;">🔁 踩坑后迭代修复</h4>
+                    <p style="font-size:12px;margin:0;">
+                    · <strong>401/403</strong> → 检查认证方式，补充到注意事项<br>
+                    · <strong>没触发 Skill</strong> → 补充触发词覆盖<br>
+                    · <strong>数据格式不对</strong> → 明确输出格式要求<br>
+                    · <strong>大数据量超时</strong> → 加入兜底策略<br>
+                    · <strong>建议节奏：</strong>上线第一周每天 5 分钟回顾反馈，之后每周 10 分钟</p>
+                </div>
+            </div>
+
+            <!-- ===== Auth Ref ===== -->
+            <div class="section" id="auth-ref">
+                <span class="section-tag tag-cyan">速查</span>
+                <h2>🔑 API 认证方式速查</h2>
+                <div class="card-flat" style="padding:0;overflow:hidden;">
+                    <table>
+                        <tr><th style="width:18%">认证方式</th><th style="width:38%">请求头示例</th><th>适用场景</th></tr>
+                        <tr><td><strong>Bearer Token</strong></td><td><code>Authorization: Bearer xxx</code></td><td>最通用，大多数 REST API</td></tr>
+                        <tr><td><strong>API Key</strong></td><td><code>X-API-Key: xxx</code></td><td>简单接口，第三方服务</td></tr>
+                        <tr><td><strong>Cookie</strong></td><td><code>Cookie: userId=xxx</code></td><td>内部系统、SSO 登录态（本案例）</td></tr>
+                        <tr><td><strong>OAuth 2.0</strong></td><td>先获取 access_token 再用 Bearer</td><td>飞书、钉钉等开放平台</td></tr>
+                    </table>
+                </div>
+            </div>
+
+            <!-- ===== Install ===== -->
+            <div class="section" id="install">
+                <span class="section-tag tag-success">安装</span>
+                <h2>📥 安装方式</h2>
+
+                <div class="card-flat" style="padding:14px;margin-bottom:8px;border-left:3px solid var(--color-brand);">
+                    <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+                        <span class="section-tag tag-brand" style="margin:0;font-size:10px;height:20px;">推荐</span>
+                        <strong style="font-size:13px;">方式一：WorkBuddy 客户端上传</strong>
+                    </div>
+                    <p style="font-size:12px;margin:0;">个人中心 → Claw 设置 → Skills 管理 → 上传 Skill 文件夹</p>
+                </div>
+                <div class="card-flat" style="padding:14px;margin-bottom:8px;">
+                    <strong style="font-size:13px;">方式二：命令行</strong>
+                    <div class="code-block" style="font-size:11px;margin:6px 0 0;">npx clawhub install ./your-skill.skill<button class="code-copy" onclick="copyCode(this)">📋</button></div>
+                </div>
+                <div class="card-flat" style="padding:14px;">
+                    <strong style="font-size:13px;">方式三：手动复制</strong>
+                    <div class="code-block" style="font-size:11px;margin:6px 0 0;">cp -r your-skill/ ~/.workbuddy/skills/<button class="code-copy" onclick="copyCode(this)">📋</button></div>
+                </div>
+
+                <h4 style="margin:16px 0 8px;">📂 安装位置</h4>
+                <table>
+                    <tr><td><strong>用户级</strong></td><td><code>~/.workbuddy/skills/</code> — 所有项目通用</td></tr>
+                    <tr><td><strong>项目级</strong></td><td><code>{workspace}/.workbuddy/skills/</code> — 仅当前项目</td></tr>
+                </table>
+            </div>
+
+            <!-- ===== Compatibility ===== -->
+            <div class="section" id="compat">
+                <span class="section-tag tag-success">兼容</span>
+                <h2>🌐 跨平台兼容</h2>
+                <p>Skill 遵循 <a href="https://agentskills.io" style="color:var(--color-brand)">AgentSkills</a> 开放规范，同一份 SKILL.md 可跨平台复用。</p>
+                <table>
+                    <tr><th>迁移方向</th><th>操作方式</th><th>说明</th></tr>
+                    <tr><td><strong>WorkBuddy → OpenClaw</strong></td><td>复制 <code>~/.workbuddy/skills/</code> → <code>~/.openclaw/skills/</code></td><td>格式完全兼容</td></tr>
+                    <tr><td><strong>OpenClaw → WorkBuddy</strong></td><td>复制 <code>~/.openclaw/skills/</code> → <code>~/.workbuddy/skills/</code></td><td>SkillHub 也可搜索安装</td></tr>
+                    <tr><td><strong>OpenClaw → Hermes</strong></td><td><code>hermes claw migrate</code></td><td>交互式迁移 Skills、记忆、配置</td></tr>
+                    <tr><td><strong>任意平台</strong></td><td>遵循 AgentSkills 规范</td><td>含 name+description 的 YAML frontmatter 即可</td></tr>
+                </table>
+            </div>
+
+            <!-- ==================== FAQ ==================== -->
+            <div class="section" id="faq">
+                <span class="section-tag tag-purple">FAQ</span>
+                <h2>❓ 常见问题</h2>
+
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleFaq(this)">
+                        <span>Skill 和普通 Prompt 有什么本质区别？</span>
+                        <span class="faq-toggle">+</span>
+                    </div>
+                    <div class="faq-answer">Prompt 告诉 AI "怎么回答"，Skill 告诉 AI "怎么做事"。Prompt 优化输出质量，Skill 给 AI 接入真实数据源和操作能力。善于回答问题 ≠ 能帮你查数据。</div>
+                </div>
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleFaq(this)">
+                        <span>我没有后端开发经验，能做 Skill 吗？</span>
+                        <span class="faq-toggle">+</span>
+                    </div>
+                    <div class="faq-answer">能！如果系统已有 API，只需写一个 SKILL.md（Markdown 文档）描述如何调用。不涉及代码编写。如果还没有 API，需找后端同事协助开发，但 SKILL.md 本身不需要编程能力。也可以把 API 信息发给 AI，让它帮你生成 SKILL.md 初稿。</div>
+                </div>
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleFaq(this)">
+                        <span>Skill 中的认证信息会不会泄露？</span>
+                        <span class="faq-toggle">+</span>
+                    </div>
+                    <div class="faq-answer">认证信息只存在于本地 SKILL.md 中，不会在对话中展示给其他用户。建议：1) 不要硬编码真实 Token，用环境变量替代；2) Cookie 类认证标注"仅供内部使用"；3) 需要按人隔离数据时，使用 Bearer Token 或 OAuth 替代 Cookie。</div>
+                </div>
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleFaq(this)">
+                        <span>做好的 Skill 能分享给团队吗？</span>
+                        <span class="faq-toggle">+</span>
+                    </div>
+                    <div class="faq-answer">三种方式：1) SkillHub 发布，团队搜索安装；2) 直接分享 Skill 文件夹，同事上传到 WorkBuddy；3) 放入项目级目录 .workbuddy/skills/，项目成员自动可用。</div>
+                </div>
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleFaq(this)">
+                        <span>API 返回数据量很大怎么办？</span>
+                        <span class="faq-toggle">+</span>
+                    </div>
+                    <div class="faq-answer">SOP Step 5 提供了 5 道防线：强制时间范围 → 分页 → 自动降级 → 超时兜底 → 异步查询。根据数据规模选择组合即可。&lt;500条用防线1，500-5000加防线2，5000-5万加防线3，5万以上全部5道。</div>
+                </div>
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleFaq(this)">
+                        <span>用户说什么才能触发 Skill？</span>
+                        <span class="faq-toggle">+</span>
+                    </div>
+                    <div class="faq-answer">取决于 SKILL.md 中 description 字段的关键词。建议至少覆盖 3 种说法，如"查询XX操作记录""分析XX的使用情况""看看上周XX的数据"。用户说法越多样，description 中需要覆盖的关键词越多。上线后根据实际使用情况持续补充。</div>
+                </div>
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleFaq(this)">
+                        <span>Skill 上线后需要维护吗？</span>
+                        <span class="faq-toggle">+</span>
+                    </div>
+                    <div class="faq-answer">需要轻量维护。主要场景：1) API 字段变更时同步更新 SKILL.md；2) 同事说的新说法没触发时补充触发词；3) 发现新踩坑点时补进注意事项。建议节奏：上线第一周每天 5 分钟回顾反馈，之后每周 10 分钟。</div>
+                </div>
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleFaq(this)">
+                        <span>Cookie 认证和 Bearer Token 认证怎么选？</span>
+                        <span class="faq-toggle">+</span>
+                    </div>
+                    <div class="faq-answer">取决于你的 API 支持哪种。内部系统通常是 Cookie（SSO 登录态），外部 API 通常是 Bearer Token。Cookie 的限制是 userId 固定，所有人共享权限；Bearer Token 支持按人隔离但需要每人配置自己的 Token。详见<a href="#auth-ref" style="color:var(--color-brand)">认证速查表</a>。</div>
+                </div>
+                <div class="faq-item">
+                    <div class="faq-question" onclick="toggleFaq(this)">
+                        <span>如何让 Skill 支持按用户隔离数据？</span>
+                        <span class="faq-toggle">+</span>
+                    </div>
+                    <div class="faq-answer">Cookie/Session 认证下 userId 是固定的，无法按用户隔离。解决方案：1) 改用 Bearer Token 或 OAuth，在 SKILL.md 中引导用户替换自己的 Token；2) API 支持按 userId 过滤参数时，在请求中传入当前用户 ID；3) 服务端根据请求来源自动做数据隔离。</div>
+                </div>
+            </div>
+
+            <!-- ===== Footer ===== -->
+            <div class="manual-footer">
+                数据分析 Skill 开发手册 · WorkBuddy<br>
+                最后更新：2026.05
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script>
+// ===== Sidebar active tracking =====
+const sections = document.querySelectorAll('.section[id], #quick-start, #template, #checklist');
+const sidebarLinks = document.querySelectorAll('.sidebar-link');
+
+const sObserver = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+        if (entry.isIntersecting) {
+            const id = entry.target.id;
+            sidebarLinks.forEach(link => {
+                link.classList.toggle('active', link.getAttribute('href') === '#' + id);
+            });
+        }
+    });
+}, { threshold: 0.15, rootMargin: '-80px 0px -60% 0px' });
+
+sections.forEach(s => sObserver.observe(s));
+
+// ===== FAQ Accordion =====
+function toggleFaq(el) {
+    const item = el.parentElement;
+    const wasOpen = item.classList.contains('open');
+    document.querySelectorAll('.faq-item.open').forEach(i => i.classList.remove('open'));
+    if (!wasOpen) item.classList.add('open');
+}
+
+// ===== Checklist =====
+function toggleCheck(el) {
+    const check = el.querySelector('.check');
+    const text = el.querySelector('.check-text');
+    check.classList.toggle('checked');
+    text.classList.toggle('done');
+}
+
+// ===== Code Copy =====
+function copyCode(btn) {
+    const text = btn.parentElement.innerText.replace('📋','').trim();
+    navigator.clipboard.writeText(text).then(() => {
+        btn.classList.add('copied'); btn.textContent = '✓';
+        setTimeout(() => { btn.classList.remove('copied'); btn.textContent = '📋'; }, 1500);
+    });
+}
+</script>
+</body>
+</html>
