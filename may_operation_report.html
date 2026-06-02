@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>表单平台操作记录分析报告 (2026-05-01~2026-05-31)</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<style>
+:root {
+  --arcoblue-6: #3491FA; --arcoblue-5: #4C83F5; --arcoblue-4: #65A2F5;
+  --arcoblue-3: #7EB8FA; --arcoblue-2: #BDDAFB; --arcoblue-1: #E8F3FF;
+  --green-6: #00B42A; --green-5: #23C343; --orange-6: #FF7D00; --orange-5: #FF9A2E;
+  --red-6: #F53F3F; --red-5: #F76560; --purple-6: #722ED1; --purple-5: #8E4CCF;
+  --cyan-6: #0FC6C2; --pink-6: #F77234;
+  --gray-1: #F7F8FA; --gray-2: #F2F3F5; --gray-3: #E5E6EB; --gray-4: #C9CDD4;
+  --gray-5: #A9AEB8; --gray-6: #86909C; --gray-7: #6B7785; --gray-8: #4E5969;
+  --gray-9: #272E3B; --gray-10: #1D2129;
+  --border-radius: 8px;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+  background: var(--gray-1); color: var(--gray-10); font-size: 14px; line-height: 1.6;
+}
+.container { max-width: 1200px; margin: 0 auto; padding: 24px; }
+.report-header {
+  background: linear-gradient(135deg, var(--arcoblue-6) 0%, var(--purple-6) 100%);
+  color: #fff; border-radius: 12px; padding: 40px; margin-bottom: 24px;
+  position: relative; overflow: hidden;
+}
+.report-header::after {
+  content: ''; position: absolute; right: -40px; top: -40px;
+  width: 180px; height: 180px; border-radius: 50%;
+  background: rgba(255,255,255,0.08);
+}
+.report-header h1 { font-size: 28px; font-weight: 700; margin-bottom: 8px; }
+.report-header .subtitle { font-size: 14px; opacity: 0.85; }
+.report-header .meta { margin-top: 16px; display: flex; gap: 24px; font-size: 13px; opacity: 0.9; flex-wrap: wrap; }
+.kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+.kpi-card {
+  background: #fff; border-radius: var(--border-radius); padding: 20px;
+  border: 1px solid var(--gray-3); transition: box-shadow 0.2s;
+}
+.kpi-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.08); }
+.kpi-card .label { font-size: 13px; color: var(--gray-6); margin-bottom: 4px; }
+.kpi-card .value { font-size: 32px; font-weight: 700; color: var(--arcoblue-6); }
+.kpi-card .sub { font-size: 12px; color: var(--gray-5); margin-top: 4px; }
+.kpi-card.orange .value { color: var(--orange-6); }
+.kpi-card.green .value { color: var(--green-6); }
+.kpi-card.red .value { color: var(--red-6); }
+.kpi-card.purple .value { color: var(--purple-6); }
+.section {
+  background: #fff; border-radius: var(--border-radius); padding: 24px;
+  border: 1px solid var(--gray-3); margin-bottom: 24px;
+}
+.section-title {
+  font-size: 17px; font-weight: 600; color: var(--gray-10);
+  margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid var(--gray-2);
+  display: flex; align-items: center; gap: 8px;
+}
+.section-title .icon { font-size: 20px; }
+.charts-row { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+.chart-full { width: 100%; }
+.chart-box { position: relative; }
+.chart-box canvas { max-height: 320px; }
+.data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.data-table th {
+  background: var(--gray-2); color: var(--gray-8); font-weight: 600;
+  padding: 10px 12px; text-align: left; border-bottom: 2px solid var(--gray-3);
+}
+.data-table td { padding: 8px 12px; border-bottom: 1px solid var(--gray-2); }
+.data-table tr:hover td { background: var(--arcoblue-1); }
+.data-table .num { text-align: right; font-variant-numeric: tabular-nums; }
+.data-table .pct { color: var(--gray-6); font-size: 12px; }
+.tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: 500; }
+.tag-red { background: #FFECE8; color: var(--red-6); }
+.tag-orange { background: #FFF7E8; color: var(--orange-6); }
+.tag-green { background: #E8FFEA; color: var(--green-6); }
+.tag-blue { background: var(--arcoblue-1); color: var(--arcoblue-6); }
+.tag-purple { background: #F5E8FF; color: var(--purple-6); }
+.tag-cyan { background: #E8FFFB; color: var(--cyan-6); }
+.insight-box {
+  background: var(--arcoblue-1); border-left: 4px solid var(--arcoblue-6);
+  padding: 16px 20px; border-radius: 0 var(--border-radius) var(--border-radius) 0;
+  margin: 16px 0; font-size: 14px; line-height: 1.8;
+}
+.insight-box.warning { background: #FFF7E8; border-left-color: var(--orange-6); }
+.insight-box.danger { background: #FFECE8; border-left-color: var(--red-6); }
+.insight-box .insight-title { font-weight: 600; margin-bottom: 4px; }
+.progress-bar { height: 8px; background: var(--gray-2); border-radius: 4px; overflow: hidden; }
+.progress-bar .fill { height: 100%; border-radius: 4px; transition: width 0.6s ease; }
+.report-footer { text-align: center; padding: 32px 0; color: var(--gray-5); font-size: 12px; }
+@media (max-width: 768px) {
+  .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+  .charts-row { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+<div class="container" id="app"></div>
+
+<script>
+const DATA = {"overview": {"totalUsers": 109, "totalOps": 10400, "totalUpdate": 1378, "publishPercent": 13.2, "totalDraft": 8489, "draftPercent": 81.6, "formUpdate": 1370, "templateUpdate": 73, "formUpdatePercent": 94.9, "templateUpdatePercent": 5.1}, "activity": {"highActive": 68, "mediumActive": 13, "lowActive": 28, "highPercent": 62.4, "mediumPercent": 11.9, "lowPercent": 25.7}, "userRank": [{"rank": 1, "oa": "龚静", "formUpdate": 216, "templateUpdate": 6, "draft": 385, "publish": 217, "total": 607, "pct": 15.7}, {"rank": 2, "oa": "卢永强", "formUpdate": 107, "templateUpdate": 16, "draft": 830, "publish": 122, "total": 1018, "pct": 8.9}, {"rank": 3, "oa": "董鑫", "formUpdate": 85, "templateUpdate": 0, "draft": 432, "publish": 85, "total": 543, "pct": 6.2}, {"rank": 4, "oa": "焦蓓", "formUpdate": 72, "templateUpdate": 0, "draft": 442, "publish": 70, "total": 526, "pct": 5.1}, {"rank": 5, "oa": "张帅", "formUpdate": 64, "templateUpdate": 0, "draft": 296, "publish": 63, "total": 408, "pct": 4.6}, {"rank": 6, "oa": "唐盈", "formUpdate": 61, "templateUpdate": 0, "draft": 200, "publish": 61, "total": 265, "pct": 4.4}, {"rank": 7, "oa": "吴雪亮", "formUpdate": 45, "templateUpdate": 11, "draft": 238, "publish": 56, "total": 334, "pct": 4.1}, {"rank": 8, "oa": "刘峰", "formUpdate": 38, "templateUpdate": 0, "draft": 202, "publish": 38, "total": 240, "pct": 2.8}, {"rank": 9, "oa": "刘逸箫", "formUpdate": 37, "templateUpdate": 0, "draft": 111, "publish": 37, "total": 167, "pct": 2.7}, {"rank": 10, "oa": "陆晶晶", "formUpdate": 40, "templateUpdate": 0, "draft": 369, "publish": 36, "total": 418, "pct": 2.6}, {"rank": 11, "oa": "王鑫", "formUpdate": 34, "templateUpdate": 1, "draft": 196, "publish": 35, "total": 240, "pct": 2.5}, {"rank": 12, "oa": "穆凯涛", "formUpdate": 24, "templateUpdate": 11, "draft": 117, "publish": 31, "total": 164, "pct": 2.2}, {"rank": 13, "oa": "KathyPu", "formUpdate": 30, "templateUpdate": 0, "draft": 124, "publish": 30, "total": 159, "pct": 2.2}, {"rank": 14, "oa": "陆一帆", "formUpdate": 31, "templateUpdate": 0, "draft": 35, "publish": 25, "total": 79, "pct": 1.8}, {"rank": 15, "oa": "徐琦", "formUpdate": 24, "templateUpdate": 1, "draft": 121, "publish": 24, "total": 149, "pct": 1.7}, {"rank": 16, "oa": "张辉", "formUpdate": 22, "templateUpdate": 0, "draft": 433, "publish": 22, "total": 459, "pct": 1.6}, {"rank": 17, "oa": "思必驰", "formUpdate": 22, "templateUpdate": 0, "draft": 36, "publish": 22, "total": 58, "pct": 1.6}, {"rank": 18, "oa": "沈之杰", "formUpdate": 19, "templateUpdate": 0, "draft": 70, "publish": 19, "total": 90, "pct": 1.4}, {"rank": 19, "oa": "徐冉", "formUpdate": 17, "templateUpdate": 3, "draft": 161, "publish": 18, "total": 189, "pct": 1.3}, {"rank": 20, "oa": "Felix", "formUpdate": 20, "templateUpdate": 3, "draft": 79, "publish": 18, "total": 117, "pct": 1.3}], "dailyTrend": [{"date": "2026-05-01", "weekday": "周五", "count": 1, "isWeekend": false, "isHoliday": true}, {"date": "2026-05-02", "weekday": "周六", "count": 10, "isWeekend": true, "isHoliday": true}, {"date": "2026-05-03", "weekday": "周日", "count": 58, "isWeekend": true, "isHoliday": true}, {"date": "2026-05-04", "weekday": "周一", "count": 27, "isWeekend": false, "isHoliday": true}, {"date": "2026-05-05", "weekday": "周二", "count": 294, "isWeekend": false, "isHoliday": true}, {"date": "2026-05-06", "weekday": "周三", "count": 189, "isWeekend": false, "isHoliday": false}, {"date": "2026-05-07", "weekday": "周四", "count": 286, "isWeekend": false, "isHoliday": false}, {"date": "2026-05-08", "weekday": "周五", "count": 556, "isWeekend": false, "isHoliday": false}, {"date": "2026-05-09", "weekday": "周六", "count": 183, "isWeekend": true, "isHoliday": false}, {"date": "2026-05-10", "weekday": "周日", "count": 62, "isWeekend": true, "isHoliday": false}, {"date": "2026-05-11", "weekday": "周一", "count": 802, "isWeekend": false, "isHoliday": false}, {"date": "2026-05-12", "weekday": "周二", "count": 398, "isWeekend": false, "isHoliday": false}, {"date": "2026-05-13", "weekday": "周三", "count": 244, "isWeekend": false, "isHoliday": false}, {"date": "2026-05-14", "weekday": "周四", "count": 699, "isWeekend": false, "isHoliday": false}, {"date": "2026-05-15", "weekday": "周五", "count": 557, "isWeekend": false, "isHoliday": false}, {"date": "2026-05-16", "weekday": "周六", "count": 24, "isWeekend": true, "isHoliday": false}, {"date": "2026-05-17", "weekday": "周日", "count": 1, "isWeekend": true, "isHoliday": false}, {"date": "2026-05-18", "weekday": "周一", "count": 463, "isWeekend": false, "isHoliday": false}, {"date": "2026-05-19", "weekday": "周二", "count": 494, "isWeekend": false, "isHoliday": false}, {"date": "2026-05-20", "weekday": "周三", "count": 585, "isWeekend": false, "isHoliday": false}, {"date": "2026-05-21", "weekday": "周四", "count": 353, "isWeekend": false, "isHoliday": false}, {"date": "2026-05-22", "weekday": "周五", "count": 840, "isWeekend": false, "isHoliday": false}, {"date": "2026-05-23", "weekday": "周六", "count": 156, "isWeekend": true, "isHoliday": false}, {"date": "2026-05-24", "weekday": "周日", "count": 104, "isWeekend": true, "isHoliday": false}, {"date": "2026-05-25", "weekday": "周一", "count": 1112, "isWeekend": false, "isHoliday": false}, {"date": "2026-05-26", "weekday": "周二", "count": 696, "isWeekend": false, "isHoliday": false}, {"date": "2026-05-27", "weekday": "周三", "count": 284, "isWeekend": false, "isHoliday": false}, {"date": "2026-05-28", "weekday": "周四", "count": 354, "isWeekend": false, "isHoliday": false}, {"date": "2026-05-29", "weekday": "周五", "count": 468, "isWeekend": false, "isHoliday": false}, {"date": "2026-05-30", "weekday": "周六", "count": 15, "isWeekend": true, "isHoliday": false}, {"date": "2026-05-31", "weekday": "周日", "count": 85, "isWeekend": true, "isHoliday": true}], "weekdayDist": [{"name": "周一", "count": 2404}, {"name": "周二", "count": 1882}, {"name": "周三", "count": 1302}, {"name": "周四", "count": 1692}, {"name": "周五", "count": 2422}, {"name": "周六", "count": 388}, {"name": "周日", "count": 310}], "hourlyDist": [{"hour": 0, "count": 5}, {"hour": 1, "count": 32}, {"hour": 2, "count": 3}, {"hour": 3, "count": 3}, {"hour": 4, "count": 2}, {"hour": 5, "count": 6}, {"hour": 6, "count": 2}, {"hour": 7, "count": 4}, {"hour": 8, "count": 112}, {"hour": 9, "count": 806}, {"hour": 10, "count": 1285}, {"hour": 11, "count": 1176}, {"hour": 12, "count": 175}, {"hour": 13, "count": 341}, {"hour": 14, "count": 1214}, {"hour": 15, "count": 1206}, {"hour": 16, "count": 942}, {"hour": 17, "count": 804}, {"hour": 18, "count": 748}, {"hour": 19, "count": 471}, {"hour": 20, "count": 570}, {"hour": 21, "count": 213}, {"hour": 22, "count": 206}, {"hour": 23, "count": 74}], "weeklyTrend": [{"week": "第18周", "count": 69}, {"week": "第19周", "count": 1597}, {"week": "第20周", "count": 2725}, {"week": "第21周", "count": 2995}, {"week": "第22周", "count": 3014}], "topProjects": [{"name": "AI前台-模型管理", "count": 207, "pct": 15.1}, {"name": "IOV海外业务翻译数据录入", "count": 157, "pct": 11.5}, {"name": "模型资源定制和调优", "count": 114, "pct": 8.3}, {"name": "26年识别唤醒定制单", "count": 92, "pct": 6.7}, {"name": "【⼤模型推理】模型推理延迟压测", "count": 74, "pct": 5.4}, {"name": "26年数据需求单", "count": 63, "pct": 4.6}, {"name": "26年识别唤醒评估单", "count": 60, "pct": 4.4}, {"name": "【超算流程】超算调度系统新建队列", "count": 55, "pct": 4.0}, {"name": "产品经理周报", "count": 51, "pct": 3.7}, {"name": "平台项目文档", "count": 44, "pct": 3.2}, {"name": "内核工程-识别提测", "count": 33, "pct": 2.4}, {"name": "数据集项目", "count": 33, "pct": 2.4}, {"name": "中台服务版本管理", "count": 32, "pct": 2.3}, {"name": "工作日常", "count": 23, "pct": 1.7}, {"name": "工时", "count": 23, "pct": 1.7}], "topFormTemplates": [{"name": "识别唤醒需求定制_V1_【通用】", "count": 45}, {"name": "海外业务需求文本数据准入", "count": 27}, {"name": "【超算流程】超算调度系统新建队列", "count": 25}, {"name": "【IOT专用】数据采集需求单", "count": 14}, {"name": "中台产品经理周报模板", "count": 10}, {"name": "IOT识别唤醒需求评估_V1_【通用模版】", "count": 8}, {"name": "【大模型】模型压测模板", "count": 8}, {"name": "【通用】数据标注需求单", "count": 7}, {"name": "内核识别提测规范", "count": 7}, {"name": "中台服务研发提测模板", "count": 6}], "topTemplateOps": [{"name": "IOV唤醒资源定制V4", "count": 9}, {"name": "实习生工作计划", "count": 6}, {"name": "机器上架标准", "count": 6}, {"name": "【大模型】使用私部模型&接入方式", "count": 4}, {"name": "中台服务研发提测模板", "count": 4}, {"name": "IOV唤醒模型优化", "count": 3}, {"name": "【大模型】模型压测模板", "count": 3}, {"name": "音频仿真_副本", "count": 3}, {"name": "IOT识别唤醒需求评估_V1_【通用模版】", "count": 2}, {"name": "原子工具模板143825", "count": 2}], "topFormUpdates": [{"name": "未命名表单", "count": 111}, {"name": "平台 AI 智能体提效实践总结 - 5月", "count": 39}, {"name": "物模型性能优化", "count": 23}, {"name": "Pipeline_shore_audio_retag", "count": 16}, {"name": "IOT方言自由说性能测试", "count": 16}, {"name": "dfm2.0-s5-s-semantic-dm模型性能压测", "count": 15}, {"name": "AGENT的输入_v2", "count": 13}, {"name": "研发中台智能体规划讨论", "count": 12}, {"name": "中枢-5090-Qwen3.5-4B-center_V150", "count": 12}, {"name": "前端项目", "count": 12}], "versionDist": {"V1": 641, "V2_V5": 489, "V6_V9": 110, "V10_plus": 130}, "highIterForms": [{"name": "智能数据筛选管线项目规划", "version": 54}, {"name": "IOT方言自由说性能测试", "version": 48}, {"name": "Badcase前端问题分析、修复", "version": 46}, {"name": "算法交叉表单总目录", "version": 44}, {"name": "2026每周任务计划表", "version": 42}, {"name": "平台 AI 智能体提效实践总结 - 5月", "version": 39}, {"name": "物模型性能优化", "version": 23}, {"name": "IOT-AP唤醒定制表单", "version": 19}, {"name": "智能表单平台帮助文档", "version": 18}, {"name": "DFM3.5-Turbo-Sep 语义压测", "version": 17}, {"name": "研发中台智能体规划讨论", "version": 16}, {"name": "对外数据集及模型平台 Q2 目标及牵引任务", "version": 15}, {"name": "极氪40w设备-DFM3-Pro", "version": 15}, {"name": "dfm2.0-s5-s-semantic-dm模型性能压测", "version": 15}, {"name": "AGENT的输入_v2", "version": 13}], "templateVersionDist": {"V1": 23, "V2_V5": 30, "V6_V9": 13, "V10_plus": 7}, "highIterTemplates": [{"name": "【IOT专用】数据采集需求单", "version": 16}, {"name": "超算流程：服务器硬件故障报修记录", "version": 13}, {"name": "【超算流程】超算调度系统新建队列", "version": 11}, {"name": "中台服务研发提测模板", "version": 11}, {"name": "IOV唤醒资源定制V4", "version": 9}, {"name": "IOV标定车型信息测量", "version": 7}, {"name": "IOT识别唤醒需求评估_V1_【通用模版】", "version": 6}, {"name": "超算流程：超算D6集群存储配额调整", "version": 6}, {"name": "【大模型】模型压测模板", "version": 6}, {"name": "实习生工作计划", "version": 6}, {"name": "机器上架标准", "version": 6}, {"name": "超算流程：超算存储配额调整", "version": 5}, {"name": "超算流程：超算集群域名白名单添加", "version": 4}, {"name": "【大模型】使用私部模型&接入方式", "version": 4}, {"name": "IOV唤醒模型优化", "version": 3}], "overtime": {"total": 2282, "pct": 21.9, "topUsers": [{"oa": "卢永强", "count": 292}, {"oa": "张帅", "count": 246}, {"oa": "徐俊峰", "count": 233}, {"oa": "宋成文", "count": 142}, {"oa": "冯玉婷", "count": 118}, {"oa": "吴雪亮", "count": 118}, {"oa": "张辉", "count": 109}, {"oa": "董鑫", "count": 108}, {"oa": "KathyPu", "count": 102}, {"oa": "吴鹏翔", "count": 99}]}, "weekend": {"total": 698, "pct": 6.7, "topUsers": [{"oa": "董鑫", "count": 122}, {"oa": "吴雪亮", "count": 93}, {"oa": "焦蓓", "count": 92}, {"oa": "卢海生", "count": 88}, {"oa": "龚静", "count": 52}, {"oa": "张辉", "count": 45}, {"oa": "王鑫", "count": 37}, {"oa": "张帅", "count": 31}, {"oa": "丁豪杰", "count": 28}, {"oa": "刘峰", "count": 26}]}, "holiday": {"total": 475, "topUsers": [{"oa": "张辉", "count": 357}, {"oa": "焦蓓", "count": 45}, {"oa": "张帅", "count": 31}, {"oa": "龚静", "count": 22}, {"oa": "金丽丽", "count": 12}, {"oa": "董鑫", "count": 5}, {"oa": "董源", "count": 1}, {"oa": "王杰", "count": 1}, {"oa": "葛新颖", "count": 1}]}, "templateBiasedUsers": [{"name": "杜海云", "formUpdate": 0, "templateUpdate": 3, "tpct": 100.0}, {"name": "徐俊峰", "formUpdate": 2, "templateUpdate": 12, "tpct": 85.7}, {"name": "黄贤中", "formUpdate": 3, "templateUpdate": 4, "tpct": 57.1}], "topUserProjects": [{"name": "龚静", "total": 217, "projects": [{"name": "AI前台-模型管理", "count": 207}, {"name": "2026工作", "count": 7}, {"name": "2026五大系统项目", "count": 1}, {"name": "产品经理周报", "count": 1}]}, {"name": "卢永强", "total": 122, "projects": [{"name": "【超算流程】超算调度系统新建队列", "count": 55}, {"name": "【⼤模型推理】模型推理延迟压测", "count": 35}, {"name": "实习生日工作内容", "count": 7}, {"name": "【大模型】私部模型申请&接入方式", "count": 7}, {"name": "【⼤模型推理】并发数及成本计算", "count": 3}]}, {"name": "董鑫", "total": 85, "projects": [{"name": "平台项目文档", "count": 44}, {"name": "dongxin的项目", "count": 17}, {"name": "信源交接", "count": 10}, {"name": "26年服务器预算规划", "count": 8}, {"name": "2026五大系统项目", "count": 5}]}, {"name": "焦蓓", "total": 70, "projects": [{"name": "模型资源定制和调优", "count": 59}, {"name": "26年识别唤醒评估单", "count": 13}]}, {"name": "张帅", "total": 63, "projects": [{"name": "IOV海外业务翻译数据录入", "count": 64}]}], "categoryCounts": {"草稿保存": 8489, "更新操作": 1378, "删除操作": 102, "表单维护": 26, "模板维护": 36, "项目管理": 31, "内容导入": 286, "用户设置": 52}, "categoryPathCounts": {"草稿保存": {"/ai-protocol-hub/unpublishForm/save": 1339, "/ai-protocol-hub/form/draftSave": 6173, "/ai-protocol-hub/template/draftSave": 977}, "更新操作": {"/ai-protocol-hub/form/publish": 1319, "/ai-protocol-hub/template/publish": 53, "/ai-protocol-hub/form/batchPublish": 6}, "删除操作": {"/ai-protocol-hub/form/delete": 96, "/ai-protocol-hub/unpublishForm/delete": 2, "/ai-protocol-hub/template/delete": 3, "/ai-protocol-hub/project/delete": 1}, "表单维护": {"/ai-protocol-hub/form/move": 13, "/ai-protocol-hub/form/cancelFocus": 1, "/ai-protocol-hub/form/focus": 1, "/ai-protocol-hub/form/saveAsTemplate": 1, "/ai-protocol-hub/form/recoverVersionForm": 8, "/ai-protocol-hub/formField/save": 2}, "模板维护": {"/ai-protocol-hub/template/recoverVersionTemplate": 1, "/ai-protocol-hub/template/copy": 18, "/ai-protocol-hub/template/sticky": 6, "/ai-protocol-hub/template/edit": 5, "/ai-protocol-hub/template/add": 5, "/ai-protocol-hub/template/unSticky": 1}, "项目管理": {"/ai-protocol-hub/project/add": 15, "/ai-protocol-hub/role/addUserToProject": 2, "/ai-protocol-hub/project/update": 10, "/ai-protocol-hub/project/sticky": 4}, "内容导入": {"/ai-protocol-hub/form/importMd": 29, "/ai-protocol-hub/file/batchUploadFile": 257}, "用户设置": {"/ai-protocol-hub/user/updateUserField": 52}}, "pathDetailRows": [{"category": "草稿保存", "path": "保存表单草稿(已更新)", "count": 6173}, {"category": "草稿保存", "path": "保存表单草稿(未更新)", "count": 1339}, {"category": "草稿保存", "path": "保存模板草稿", "count": 977}, {"category": "更新操作", "path": "更新表单", "count": 1319}, {"category": "更新操作", "path": "更新模板", "count": 53}, {"category": "更新操作", "path": "批量更新表单", "count": 6}, {"category": "删除操作", "path": "删除表单", "count": 96}, {"category": "删除操作", "path": "删除模板", "count": 3}, {"category": "删除操作", "path": "删除草稿表单", "count": 2}, {"category": "删除操作", "path": "删除项目", "count": 1}, {"category": "表单维护", "path": "移动表单", "count": 13}, {"category": "表单维护", "path": "表单版本回退", "count": 8}, {"category": "表单维护", "path": "保存表单字段", "count": 2}, {"category": "表单维护", "path": "取消关注表单", "count": 1}, {"category": "表单维护", "path": "关注表单", "count": 1}, {"category": "表单维护", "path": "表单另存为模板", "count": 1}, {"category": "模板维护", "path": "复制模板", "count": 18}, {"category": "模板维护", "path": "模板置顶", "count": 6}, {"category": "模板维护", "path": "编辑模板", "count": 5}, {"category": "模板维护", "path": "新建模板", "count": 5}, {"category": "模板维护", "path": "模板版本回退", "count": 1}, {"category": "模板维护", "path": "模板取消置顶", "count": 1}, {"category": "项目管理", "path": "创建项目", "count": 15}, {"category": "项目管理", "path": "更新项目", "count": 10}, {"category": "项目管理", "path": "项目置顶", "count": 4}, {"category": "项目管理", "path": "添加项目成员", "count": 2}, {"category": "内容导入", "path": "上传文件", "count": 257}, {"category": "内容导入", "path": "导入Markdown", "count": 29}, {"category": "用户设置", "path": "更新用户设置", "count": 52}], "deleteDetails": [{"path": "删除表单", "time": "2026-05-29 10:24:10", "user": "申晓舟", "oa": "xiaozhou.shen"}, {"path": "删除表单", "time": "2026-05-29 10:20:53", "user": "申晓舟", "oa": "xiaozhou.shen"}, {"path": "删除表单", "time": "2026-05-28 19:20:41", "user": "KathyPu", "oa": "kaifei.pu"}, {"path": "删除表单", "time": "2026-05-28 19:17:44", "user": "KathyPu", "oa": "kaifei.pu"}, {"path": "删除表单", "time": "2026-05-28 19:16:28", "user": "KathyPu", "oa": "kaifei.pu"}, {"path": "删除表单", "time": "2026-05-28 19:16:21", "user": "KathyPu", "oa": "kaifei.pu"}, {"path": "删除表单", "time": "2026-05-28 19:06:55", "user": "Felix", "oa": "junfeng.guo@aispeech.com"}, {"path": "删除模板", "time": "2026-05-28 19:00:56", "user": "Felix", "oa": "junfeng.guo@aispeech.com"}, {"path": "删除表单", "time": "2026-05-28 18:47:50", "user": "Felix", "oa": "junfeng.guo@aispeech.com"}, {"path": "删除表单", "time": "2026-05-26 21:49:48", "user": "张帅", "oa": "shuai.zhang"}, {"path": "删除表单", "time": "2026-05-26 21:49:45", "user": "张帅", "oa": "shuai.zhang"}, {"path": "删除表单", "time": "2026-05-26 21:49:39", "user": "张帅", "oa": "shuai.zhang"}, {"path": "删除表单", "time": "2026-05-26 21:49:30", "user": "张帅", "oa": "shuai.zhang"}, {"path": "删除表单", "time": "2026-05-26 14:58:50", "user": "张帅", "oa": "shuai.zhang"}, {"path": "删除表单", "time": "2026-05-26 14:58:28", "user": "张帅", "oa": "shuai.zhang"}, {"path": "删除表单", "time": "2026-05-26 14:14:52", "user": "刘逸箫", "oa": "yixiao.liu"}, {"path": "删除表单", "time": "2026-05-25 10:12:37", "user": "肖通", "oa": "tong.xiao"}, {"path": "删除表单", "time": "2026-05-25 10:12:29", "user": "肖通", "oa": "tong.xiao"}, {"path": "删除表单", "time": "2026-05-24 01:23:42", "user": "卢海生", "oa": "haisheng.lu"}, {"path": "删除表单", "time": "2026-05-23 22:12:31", "user": "卢海生", "oa": "haisheng.lu"}, {"path": "删除项目", "time": "2026-05-23 21:52:33", "user": "卢海生", "oa": "haisheng.lu"}, {"path": "删除模板", "time": "2026-05-23 21:46:31", "user": "卢海生", "oa": "haisheng.lu"}, {"path": "删除表单", "time": "2026-05-22 15:39:45", "user": "不告诉你", "oa": "yichao.guo"}, {"path": "删除表单", "time": "2026-05-22 15:36:58", "user": "王鑫", "oa": "xin.wang02"}, {"path": "删除表单", "time": "2026-05-21 17:30:21", "user": "穆凯涛", "oa": "kaitao.mu"}, {"path": "删除表单", "time": "2026-05-21 15:43:18", "user": "xuhuishen", "oa": "xuhui.shen"}, {"path": "删除表单", "time": "2026-05-21 14:22:50", "user": "陆晶晶", "oa": "jingjing.lu"}, {"path": "删除表单", "time": "2026-05-20 14:31:56", "user": "刘鹏飞", "oa": "pengfei.liu01"}, {"path": "删除表单", "time": "2026-05-20 10:34:12", "user": "卢永强", "oa": "yongqiang.lu"}, {"path": "删除模板", "time": "2026-05-19 17:45:24", "user": "卢永强", "oa": "yongqiang.lu"}], "publishFormDetails": [{"name": "", "version": "V1", "time": "2026-05-31 22:06:37", "type": "表单", "user": "龚静", "project": "AI前台-模型管理", "template": ""}, {"name": "（西）一汽奔腾", "version": "V9", "time": "2026-05-31 20:14:39", "type": "表单", "user": "张帅", "project": "IOV海外业务翻译数据录入", "template": "海外业务需求文本数据准入"}, {"name": "（法）一汽奔腾", "version": "V10", "time": "2026-05-31 20:14:17", "type": "表单", "user": "张帅", "project": "IOV海外业务翻译数据录入", "template": "海外业务需求文本数据准入"}, {"name": "（英）一汽奔腾", "version": "V9", "time": "2026-05-31 20:14:00", "type": "表单", "user": "张帅", "project": "IOV海外业务翻译数据录入", "template": "海外业务需求文本数据准入"}, {"name": "（俄）一汽奔腾", "version": "V8", "time": "2026-05-31 20:13:38", "type": "表单", "user": "张帅", "project": "IOV海外业务翻译数据录入", "template": "海外业务需求文本数据准入"}, {"name": "（阿拉伯）一汽奔腾", "version": "V9", "time": "2026-05-31 20:13:15", "type": "表单", "user": "张帅", "project": "IOV海外业务翻译数据录入", "template": "海外业务需求文本数据准入"}, {"name": "（葡）一汽奔腾", "version": "V8", "time": "2026-05-31 20:12:26", "type": "表单", "user": "张帅", "project": "IOV海外业务翻译数据录入", "template": "海外业务需求文本数据准入"}, {"name": "", "version": "V1", "time": "2026-05-31 19:18:20", "type": "表单", "user": "龚静", "project": "AI前台-模型管理", "template": ""}, {"name": "2026-05-31", "version": "V1", "time": "2026-05-31 18:30:19", "type": "表单", "user": "葛新颖", "project": "工作日常", "template": ""}, {"name": "", "version": "V1", "time": "2026-05-31 18:17:01", "type": "表单", "user": "龚静", "project": "AI前台-模型管理", "template": ""}, {"name": "", "version": "V1", "time": "2026-05-31 12:25:36", "type": "表单", "user": "龚静", "project": "AI前台-模型管理", "template": ""}, {"name": "", "version": "V1", "time": "2026-05-31 09:27:34", "type": "表单", "user": "龚静", "project": "AI前台-模型管理", "template": ""}, {"name": "", "version": "V1", "time": "2026-05-31 02:22:29", "type": "表单", "user": "龚静", "project": "AI前台-模型管理", "template": ""}, {"name": "", "version": "V1", "time": "2026-05-31 00:49:44", "type": "表单", "user": "龚静", "project": "AI前台-模型管理", "template": ""}, {"name": "", "version": "V1", "time": "2026-05-31 00:40:06", "type": "表单", "user": "龚静", "project": "AI前台-模型管理", "template": ""}, {"name": "平台 AI 智能体提效实践总结 - 5月", "version": "V39", "time": "2026-05-30 21:27:36", "type": "表单", "user": "董鑫", "project": "平台项目文档", "template": ""}, {"name": "", "version": "V1", "time": "2026-05-30 20:03:28", "type": "表单", "user": "龚静", "project": "AI前台-模型管理", "template": ""}, {"name": "2026-05-30", "version": "V1", "time": "2026-05-30 18:30:26", "type": "表单", "user": "葛新颖", "project": "工作日常", "template": ""}, {"name": "", "version": "V1", "time": "2026-05-30 17:03:54", "type": "表单", "user": "龚静", "project": "AI前台-模型管理", "template": ""}, {"name": "", "version": "V1", "time": "2026-05-30 16:26:58", "type": "表单", "user": "龚静", "project": "AI前台-模型管理", "template": ""}, {"name": "", "version": "V1", "time": "2026-05-30 15:57:23", "type": "表单", "user": "龚静", "project": "AI前台-模型管理", "template": ""}, {"name": "", "version": "V1", "time": "2026-05-30 15:53:19", "type": "表单", "user": "龚静", "project": "AI前台-模型管理", "template": ""}, {"name": "", "version": "V1", "time": "2026-05-30 14:58:17", "type": "表单", "user": "龚静", "project": "AI前台-模型管理", "template": ""}, {"name": "", "version": "V1", "time": "2026-05-30 12:17:33", "type": "表单", "user": "龚静", "project": "AI前台-模型管理", "template": ""}, {"name": "", "version": "V1", "time": "2026-05-30 09:25:35", "type": "表单", "user": "龚静", "project": "AI前台-模型管理", "template": ""}, {"name": "", "version": "V1", "time": "2026-05-30 05:36:53", "type": "表单", "user": "龚静", "project": "AI前台-模型管理", "template": ""}, {"name": "", "version": "V1", "time": "2026-05-30 03:29:32", "type": "表单", "user": "龚静", "project": "AI前台-模型管理", "template": ""}, {"name": "", "version": "V1", "time": "2026-05-29 21:12:21", "type": "表单", "user": "龚静", "project": "AI前台-模型管理", "template": ""}, {"name": "", "version": "V1", "time": "2026-05-29 20:52:53", "type": "表单", "user": "龚静", "project": "AI前台-模型管理", "template": ""}, {"name": "", "version": "V1", "time": "2026-05-29 20:38:19", "type": "表单", "user": "龚静", "project": "AI前台-模型管理", "template": ""}, {"name": "", "version": "V1", "time": "2026-05-29 19:57:05", "type": "表单", "user": "龚静", "project": "AI前台-模型管理", "template": ""}, {"name": "本地长语音中文-magnus_lasr_android_aarch64_v0.0.5.sp02", "version": "V4", "time": "2026-05-29 19:50:23", "type": "表单", "user": "KathyPu", "project": "内核工程-识别提测", "template": "内核识别提测规范"}, {"name": "（葡）一汽奔腾", "version": "V7", "time": "2026-05-29 19:21:17", "type": "表单", "user": "彭坤杨", "project": "IOV海外业务翻译数据录入", "template": "海外业务需求文本数据准入"}, {"name": "", "version": "V1", "time": "2026-05-29 19:20:32", "type": "表单", "user": "龚静", "project": "AI前台-模型管理", "template": ""}, {"name": "本地长语音中文-magnus_lasr_android_aarch64_v0.0.5.sp02", "version": "V3", "time": "2026-05-29 19:18:07", "type": "表单", "user": "KathyPu", "project": "内核工程-识别提测", "template": "内核识别提测规范"}, {"name": "本地长语音中文-magnus_lasr_android_aarch64_v0.0.5.sp02", "version": "V2", "time": "2026-05-29 19:17:51", "type": "表单", "user": "KathyPu", "project": "内核工程-识别提测", "template": "内核识别提测规范"}, {"name": "本地长语音中文-magnus_lasr_android_aarch64_v0.0.5.sp02", "version": "V1", "time": "2026-05-29 19:12:36", "type": "表单", "user": "KathyPu", "project": "内核工程-识别提测", "template": "内核识别提测规范"}, {"name": "", "version": "V1", "time": "2026-05-29 19:07:08", "type": "表单", "user": "龚静", "project": "AI前台-模型管理", "template": ""}, {"name": "（阿拉伯）一汽奔腾", "version": "V8", "time": "2026-05-29 18:54:02", "type": "表单", "user": "张帅", "project": "IOV海外业务翻译数据录入", "template": "海外业务需求文本数据准入"}, {"name": "（俄）一汽奔腾", "version": "V7", "time": "2026-05-29 18:53:28", "type": "表单", "user": "张帅", "project": "IOV海外业务翻译数据录入", "template": "海外业务需求文本数据准入"}, {"name": "（英）一汽奔腾", "version": "V8", "time": "2026-05-29 18:53:06", "type": "表单", "user": "张帅", "project": "IOV海外业务翻译数据录入", "template": "海外业务需求文本数据准入"}, {"name": "（法）一汽奔腾", "version": "V9", "time": "2026-05-29 18:52:35", "type": "表单", "user": "张帅", "project": "IOV海外业务翻译数据录入", "template": "海外业务需求文本数据准入"}, {"name": "（葡）一汽奔腾", "version": "V6", "time": "2026-05-29 18:52:14", "type": "表单", "user": "张帅", "project": "IOV海外业务翻译数据录入", "template": "海外业务需求文本数据准入"}, {"name": "（西）一汽奔腾", "version": "V8", "time": "2026-05-29 18:51:52", "type": "表单", "user": "张帅", "project": "IOV海外业务翻译数据录入", "template": "海外业务需求文本数据准入"}, {"name": "", "version": "V1", "time": "2026-05-29 18:42:21", "type": "表单", "user": "龚静", "project": "AI前台-模型管理", "template": ""}, {"name": "（西）一汽奔腾", "version": "V7", "time": "2026-05-29 18:38:26", "type": "表单", "user": "张帅", "project": "IOV海外业务翻译数据录入", "template": "海外业务需求文本数据准入"}, {"name": "（西）一汽奔腾", "version": "V6", "time": "2026-05-29 18:37:44", "type": "表单", "user": "张帅", "project": "IOV海外业务翻译数据录入", "template": "海外业务需求文本数据准入"}, {"name": "（葡）一汽奔腾", "version": "V5", "time": "2026-05-29 18:37:13", "type": "表单", "user": "张帅", "project": "IOV海外业务翻译数据录入", "template": "海外业务需求文本数据准入"}, {"name": "2026-05-29", "version": "V1", "time": "2026-05-29 18:31:02", "type": "表单", "user": "葛新颖", "project": "工作日常", "template": ""}, {"name": "（法）一汽奔腾", "version": "V8", "time": "2026-05-29 18:13:16", "type": "表单", "user": "张帅", "project": "IOV海外业务翻译数据录入", "template": "海外业务需求文本数据准入"}], "insights": {"problems": ["草稿保存操作占比81.6%过高，编辑迭代频繁但更新转化率偏低，可能存在反复修改但未更新的情况", "加班操作占比21.9%，18:00后仍有大量操作，工作负荷偏重", "高迭代表单\"智能数据筛选管线项目规划\"已达V54版本，版本管理失控风险", "模板更新仅占5.1%，模板功能使用率低，需关注推广", "删除操作102次，属于高危操作，建议关注删除明细"], "suggestions": ["优化表单编辑体验，减少保存频次（如自动保存），提升编辑效率", "对V30+版本表单评审，考虑切换为文档/数据库形式管理", "调研模板功能使用率低的原因，可能需要模板功能优化或培训推广", "定期审查删除操作，建立删除审批或二次确认机制"], "positives": ["核心项目\"AI前台-模型管理\"操作活跃，占比15.1%，使用稳定", "工作日日均操作521次，平台使用稳定"]}};
+
+const O = DATA.overview;
+const A = DATA.activity;
+const colors = ['#3491FA','#4C83F5','#722ED1','#0FC6C2','#00B42A','#FF7D00','#F53F3F','#F77234','#8E4CCF','#65A2F5','#BDDAFB','#E8F3FF','#C9CDD4','#86909C','#4E5969'];
+
+// ===== HELPER FUNCTIONS (must be defined before template usage) =====
+const _pathLabels = {"/ai-protocol-hub/form/draftSave": "保存表单草稿(已更新)", "/ai-protocol-hub/unpublishForm/save": "保存表单草稿(未更新)", "/ai-protocol-hub/template/draftSave": "保存模板草稿", "/ai-protocol-hub/form/publish": "更新表单", "/ai-protocol-hub/form/batchPublish": "批量更新表单", "/ai-protocol-hub/template/publish": "更新模板", "/ai-protocol-hub/form/delete": "删除表单", "/ai-protocol-hub/unpublishForm/delete": "删除草稿表单", "/ai-protocol-hub/template/delete": "删除模板", "/ai-protocol-hub/project/delete": "删除项目", "/ai-protocol-hub/form/move": "移动表单", "/ai-protocol-hub/form/recoverVersionForm": "表单版本回退", "/ai-protocol-hub/form/focus": "关注表单", "/ai-protocol-hub/form/cancelFocus": "取消关注表单", "/ai-protocol-hub/form/saveAsTemplate": "表单另存为模板", "/ai-protocol-hub/formField/save": "保存表单字段", "/ai-protocol-hub/template/copy": "复制模板", "/ai-protocol-hub/template/edit": "编辑模板", "/ai-protocol-hub/template/add": "新建模板", "/ai-protocol-hub/template/sticky": "模板置顶", "/ai-protocol-hub/template/unSticky": "模板取消置顶", "/ai-protocol-hub/template/recoverVersionTemplate": "模板版本回退", "/ai-protocol-hub/project/add": "创建项目", "/ai-protocol-hub/project/update": "更新项目", "/ai-protocol-hub/project/sticky": "项目置顶", "/ai-protocol-hub/role/addUserToProject": "添加项目成员", "/ai-protocol-hub/file/batchUploadFile": "上传文件", "/ai-protocol-hub/form/importMd": "导入Markdown", "/ai-protocol-hub/user/updateUserField": "更新用户设置"};
+const _catColors = ['tag-blue','tag-cyan','tag-red','tag-orange','tag-purple','tag-blue','tag-green','tag-orange'];
+const _catOrder = ['草稿保存','更新操作','删除操作','表单维护','模板维护','项目管理','内容导入','用户设置'];
+
+function generateTimeInsight(DATA) {
+  const wd = DATA.weekdayDist;
+  const maxWd = wd.reduce((a,b) => b.count > a.count ? b : a, wd[0]);
+  const hd = DATA.hourlyDist.filter(h => h.count > 0);
+  const maxH = hd.reduce((a,b) => b.count > a.count ? b : a, hd[0] || {hour:0,count:0});
+  return '工作日中最活跃的是' + maxWd.name + '(' + maxWd.count + '次操作)；操作高峰时段为' + maxH.hour + ':00(' + maxH.count + '次)；加班操作' + DATA.overtime.total + '次占' + DATA.overtime.pct + '%。';
+}
+
+function generateCategoryRows(DATA) {
+  return _catOrder.map((cat, i) => {
+    const count = DATA.categoryCounts[cat] || 0;
+    const pct = (count / Math.max(O.totalOps, 1) * 100).toFixed(1);
+    const paths = DATA.categoryPathCounts[cat] || {};
+    const topPaths = Object.entries(paths).sort((a,b) => b[1]-a[1]).slice(0,3);
+    const subInfo = topPaths.map(([p,c]) => (_pathLabels[p]||p)+'('+c+')').join('、');
+    return '<tr><td><span class="tag ' + _catColors[i] + '">' + cat + '</span></td><td style="font-weight:600">' + count.toLocaleString() + '</td><td>' + pct + '%</td><td style="font-size:12px;color:var(--gray-6)">' + subInfo + '</td></tr>';
+  }).join('');
+}
+
+function generatePathDetailRows(DATA) {
+  return DATA.pathDetailRows.map(row => {
+    const catIdx = _catOrder.indexOf(row.category);
+    const pct = (row.count / Math.max(O.totalOps, 1) * 100).toFixed(2);
+    return '<tr><td><span class="tag ' + (_catColors[catIdx] || 'tag-blue') + '">' + row.category + '</span></td><td>' + row.path + '</td><td style="font-weight:600">' + row.count.toLocaleString() + '</td><td>' + pct + '%</td></tr>';
+  }).join('');
+}
+
+const app = document.getElementById('app');
+
+app.innerHTML = `
+<!-- Header -->
+<div class="report-header">
+  <h1>表单平台操作记录系统分析报告</h1>
+  <div class="subtitle">分析周期：2026-05-01 — 2026-05-31</div>
+  <div class="meta">
+    <span>生成时间：2026-06-02</span>
+    <span>数据来源：duiopen.com AI协议中心</span>
+  </div>
+</div>
+
+<!-- KPI Cards -->
+<div class="kpi-grid">
+  <div class="kpi-card">
+    <div class="label">活跃用户数</div>
+    <div class="value">${O.totalUsers}</div>
+    <div class="sub">有操作记录的用户</div>
+  </div>
+  <div class="kpi-card orange">
+    <div class="label">操作日志总数</div>
+    <div class="value">${O.totalOps.toLocaleString()}</div>
+    <div class="sub">含草稿/更新/删除等全部操作</div>
+  </div>
+  <div class="kpi-card green">
+    <div class="label">表单更新</div>
+    <div class="value">${O.formUpdate.toLocaleString()}</div>
+    <div class="sub">占更新总量 ${O.formUpdatePercent}%</div>
+  </div>
+  <div class="kpi-card purple">
+    <div class="label">模板更新</div>
+    <div class="value">${O.templateUpdate.toLocaleString()}</div>
+    <div class="sub">占更新总量 ${O.templateUpdatePercent}%</div>
+  </div>
+</div>
+
+<!-- 1. 活跃度分层 -->
+<div class="section">
+  <div class="section-title"><span class="icon">📊</span> 用户活跃度分层</div>
+  <div class="charts-row">
+    <div class="chart-box"><canvas id="chartActivity"></canvas></div>
+    <div class="chart-box">
+      <table class="data-table">
+        <thead><tr><th>层级</th><th>条件</th><th class="num">人数</th><th class="num">占比</th></tr></thead>
+        <tbody>
+          <tr><td><span class="tag tag-red">高活跃</span></td><td>≥10次</td><td class="num">${A.highActive}</td><td class="num">${A.highPercent}%</td></tr>
+          <tr><td><span class="tag tag-orange">中活跃</span></td><td>3-9次</td><td class="num">${A.mediumActive}</td><td class="num">${A.mediumPercent}%</td></tr>
+          <tr><td><span class="tag tag-green">低活跃</span></td><td>1-2次</td><td class="num">${A.lowActive}</td><td class="num">${A.lowPercent}%</td></tr>
+        </tbody>
+      </table>
+      <div class="insight-box" style="margin-top:16px">
+        <div class="insight-title">💡 活跃度概览</div>
+        高活跃用户${A.highActive}人占${A.highPercent}%，贡献了大部分操作量；中活跃${A.mediumActive}人(${A.mediumPercent}%)为潜力用户；低活跃${A.lowActive}人(${A.lowPercent}%)需关注激活。
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 2. 更新操作分析 -->
+<div class="section">
+  <div class="section-title"><span class="icon">📋</span> 更新操作分析</div>
+
+  <!-- 2.1 更新类型占比 -->
+  <div style="font-weight:600;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--gray-3)">📊 更新类型占比</div>
+  <div class="charts-row">
+    <div class="chart-box" style="max-width:400px"><canvas id="chartFormVsTemplate"></canvas></div>
+    <div class="chart-box">
+      <table class="data-table">
+        <thead><tr><th>更新类型</th><th class="num">次数</th><th class="num">占比</th></tr></thead>
+        <tbody>
+          <tr><td>表单更新</td><td class="num">${O.formUpdate.toLocaleString()}</td><td class="num pct">${O.formUpdatePercent}%</td></tr>
+          <tr><td>模板更新</td><td class="num">${O.templateUpdate.toLocaleString()}</td><td class="num pct">${O.templateUpdatePercent}%</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 2.2 热门更新项目 -->
+  <div style="font-weight:600;margin-top:20px;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--gray-3)">📁 热门更新项目 TOP 15</div>
+  <div class="charts-row">
+    <div class="chart-box"><canvas id="chartProjects"></canvas></div>
+    <div class="chart-box">
+      <table class="data-table">
+        <thead><tr><th>项目</th><th class="num">更新次数</th><th class="num">占比</th></tr></thead>
+        <tbody>
+          ${DATA.topProjects.map(p => `<tr><td style="max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${p.name}">${p.name}</td><td class="num">${p.count}</td><td class="num pct">${p.pct}%</td></tr>`).join('')}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 2.3 热门模板（使用次数 + 更新次数） -->
+  <div style="font-weight:600;margin-top:20px;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--gray-3)">📝 热门模板</div>
+  <div class="charts-row">
+    <div class="chart-box">
+      <div style="font-weight:600;margin-bottom:8px">模板使用次数 TOP 10（按关联表单数）</div>
+      <table class="data-table">
+        <thead><tr><th>模板名称</th><th class="num">关联表单数</th></tr></thead>
+        <tbody>
+          ${DATA.topFormTemplates.map(t => `<tr><td style="max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${t.name}">${t.name || '（未指定模板）'}</td><td class="num">${t.count}</td></tr>`).join('')}
+        </tbody>
+      </table>
+    </div>
+    <div class="chart-box">
+      <div style="font-weight:600;margin-bottom:8px">模板更新次数 TOP 10</div>
+      <table class="data-table">
+        <thead><tr><th>模板名称</th><th class="num">更新次数</th></tr></thead>
+        <tbody>
+          ${DATA.topTemplateOps.map(t => `<tr><td style="max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${t.name}">${t.name}</td><td class="num">${t.count}</td></tr>`).join('')}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 2.4 热门更新表单 -->
+  <div style="font-weight:600;margin-top:20px;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--gray-3)">📄 热门更新表单 TOP 10</div>
+  <div class="charts-row">
+    <div class="chart-box">
+      <table class="data-table">
+        <thead><tr><th>表单名称</th><th class="num">更新次数</th></tr></thead>
+        <tbody>
+          ${DATA.topFormUpdates.map(f => `<tr><td style="max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${f.name}">${f.name || '（未命名表单）'}</td><td class="num">${f.count}</td></tr>`).join('')}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- 3. 版本迭代分析 -->
+<div class="section">
+  <div class="section-title"><span class="icon">🔄</span> 版本迭代分析</div>
+
+  <!-- 3.1 表单版本迭代 -->
+  <div style="font-weight:600;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--gray-3)">📄 表单版本迭代分布</div>
+  <div class="charts-row">
+    <div class="chart-box"><canvas id="chartVersion"></canvas></div>
+    <div class="chart-box">
+      <div style="font-weight:600;margin-bottom:12px">高迭代表单（版本≥V10）</div>
+      <table class="data-table">
+        <thead><tr><th>表单名称</th><th class="num">最高版本</th></tr></thead>
+        <tbody>
+          ${DATA.highIterForms.slice(0,10).map(f => `<tr><td style="max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${f.name}">${f.name}</td><td class="num"><span class="tag ${f.version>=50?'tag-red':f.version>=30?'tag-orange':'tag-blue'}">V${f.version}</span></td></tr>`).join('')}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 3.2 模板版本迭代 -->
+  <div style="font-weight:600;margin-top:20px;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--gray-3)">📝 模板版本迭代分布</div>
+  <div class="charts-row">
+    <div class="chart-box"><canvas id="chartTemplateVersion"></canvas></div>
+    <div class="chart-box">
+      <div style="font-weight:600;margin-bottom:12px">高迭代模板（版本≥V10）</div>
+      <table class="data-table">
+        <thead><tr><th>模板名称</th><th class="num">最高版本</th></tr></thead>
+        <tbody>
+          ${DATA.highIterTemplates.slice(0,10).map(t => `<tr><td style="max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${t.name}">${t.name}</td><td class="num"><span class="tag ${t.version>=50?'tag-red':t.version>=30?'tag-orange':'tag-blue'}">V${t.version}</span></td></tr>`).join('')}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+
+
+<!-- 4. 用户操作排名 -->
+<div class="section">
+  <div class="section-title"><span class="icon">🏆</span> 用户更新排名 TOP 20</div>
+  <div class="chart-box chart-full"><canvas id="chartUserRank"></canvas></div>
+  <table class="data-table" style="margin-top:16px">
+    <thead><tr><th>排名</th><th>用户</th><th class="num">更新次数</th><th class="num">草稿保存</th><th class="num">总操作</th><th class="num">占比</th></tr></thead>
+    <tbody>
+      ${DATA.userRank.map(u => `<tr><td>${u.rank}</td><td>${u.oa}</td><td class="num" style="font-weight:600">${u.publish}</td><td class="num">${u.draft}</td><td class="num">${u.total}</td><td class="num pct">${u.pct}%</td></tr>`).join('')}
+    </tbody>
+  </table>
+</div>
+
+
+
+<!-- 5. TOP5用户核心项目 -->
+${DATA.topUserProjects.length > 0 ? `
+<div class="section">
+  <div class="section-title"><span class="icon">👤</span> TOP 5 更新用户核心项目聚焦</div>
+  <div class="charts-row">
+    ${DATA.topUserProjects.map((u, i) => `
+    <div class="chart-box"><canvas id="chartTopUser${i}"></canvas>
+      <div style="text-align:center;padding:8px 0;font-weight:600">${u.name}（更新${u.total}次）</div>
+    </div>`).join('')}
+  </div>
+</div>
+` : ''}
+
+
+
+<!-- 6. 操作类别分布 -->
+<div class="section">
+  <div class="section-title"><span class="icon">📂</span> 操作类别分布</div>
+  <div class="charts-row">
+    <div class="chart-box"><canvas id="chartCatPie"></canvas></div>
+    <div class="chart-box"><canvas id="chartCatBar"></canvas></div>
+  </div>
+  <table class="data-table" style="margin-top:16px">
+    <thead><tr><th>操作大类</th><th>次数</th><th>占比</th><th>关键子操作</th></tr></thead>
+    <tbody>
+      ${generateCategoryRows(DATA)}
+    </tbody>
+  </table>
+</div>
+
+
+
+<!-- 7. 时间维度分析 -->
+<div class="section">
+  <div class="section-title"><span class="icon">📈</span> 时间维度分析</div>
+  <div class="charts-row">
+    <div class="chart-box"><canvas id="chartDaily"></canvas></div>
+    <div class="chart-box"><canvas id="chartWeekly"></canvas></div>
+  </div>
+  <div class="charts-row" style="margin-top:24px">
+    <div class="chart-box"><canvas id="chartWeekday"></canvas></div>
+    <div class="chart-box"><canvas id="chartHourly"></canvas></div>
+  </div>
+  <div class="insight-box">
+    <div class="insight-title">💡 时间规律</div>
+    ${generateTimeInsight(DATA)}
+  </div>
+</div>
+
+
+
+<!-- 8. 加班 & 假期分析 -->
+<div class="section">
+  <div class="section-title"><span class="icon">⏰</span> 加班与假期分析</div>
+  <div class="charts-row">
+    <div class="chart-box">
+      <div style="font-weight:600;margin-bottom:12px">加班用户 TOP 10（18:00后）</div>
+      <table class="data-table">
+        <thead><tr><th>用户</th><th class="num">加班操作</th><th style="width:40%">占比</th></tr></thead>
+        <tbody>
+          ${DATA.overtime.topUsers.map(u => `<tr><td>${u.oa}</td><td class="num">${u.count}</td><td><div class="progress-bar"><div class="fill" style="width:${Math.round(u.count/Math.max(DATA.overtime.topUsers[0]?.count||1,1)*100)}%;background:var(--orange-6)"></div></div></td></tr>`).join('')}
+        </tbody>
+      </table>
+      <div class="insight-box" style="margin-top:12px">
+        加班操作 ${DATA.overtime.total} 次，占总操作 ${DATA.overtime.pct}%。
+      </div>
+    </div>
+    <div class="chart-box">
+      <div style="font-weight:600;margin-bottom:12px">假期与周末操作</div>
+      <div style="margin-bottom:16px;padding:12px;background:var(--gray-2);border-radius:var(--border-radius)">
+        <div style="font-weight:600;margin-bottom:4px">🧨 假期操作</div>
+        <div>假期总操作：<strong>${DATA.holiday.total}</strong> 次</div>
+        <div>假期操作用户：${DATA.holiday.topUsers.map(u => u.oa).join('、') || '无'}</div>
+      </div>
+      <div style="padding:12px;background:var(--gray-2);border-radius:var(--border-radius)">
+        <div style="font-weight:600;margin-bottom:4px">📅 周末操作</div>
+        <div>周末总操作：<strong>${DATA.weekend.total}</strong> 次（占${DATA.weekend.pct}%）</div>
+        <div>周末操作用户：${DATA.weekend.topUsers.slice(0,5).map(u => `${u.oa}(${u.count})`).join('、')}</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+<!-- 9. 操作偏好分析 -->
+${DATA.templateBiasedUsers.length > 0 ? `
+<div class="section">
+  <div class="section-title"><span class="icon">🔀</span> 更新偏好分析</div>
+  <div class="charts-row">
+    <div class="chart-box">
+      <div style="font-weight:600;margin-bottom:12px">偏模板更新用户（总操作≥10，模板更新>表单更新）</div>
+      <table class="data-table">
+        <thead><tr><th>用户</th><th class="num">表单更新</th><th class="num">模板更新</th><th class="num">模板更新占比</th></tr></thead>
+        <tbody>
+          ${DATA.templateBiasedUsers.map(u => `<tr><td>${u.name}</td><td class="num">${u.formUpdate}</td><td class="num">${u.templateUpdate}</td><td class="num"><span class="tag tag-purple">${u.tpct}%</span></td></tr>`).join('')}
+        </tbody>
+      </table>
+    </div>
+    <div class="chart-box"><canvas id="chartOvertimeDist"></canvas></div>
+  </div>
+</div>
+` : ''}
+
+
+
+<!-- 10. 删除操作明细 -->
+${DATA.deleteDetails.length > 0 ? `
+<div class="section">
+  <div class="section-title"><span class="icon">🗑️</span> 删除操作明细（最近30条）</div>
+  <table class="data-table">
+    <thead><tr><th>操作类型</th><th>用户</th><th>时间</th></tr></thead>
+    <tbody>
+      ${DATA.deleteDetails.map(d => `<tr><td><span class="tag tag-red">${d.path}</span></td><td>${d.user}</td><td>${d.time || '-'}</td></tr>`).join('')}
+    </tbody>
+  </table>
+</div>
+` : ''}
+
+
+
+<!-- 11. 核心洞察 -->
+<div class="section">
+  <div class="section-title"><span class="icon">💡</span> 核心洞察与建议</div>
+  ${DATA.insights.problems.length > 0 ? `
+  <div class="insight-box danger">
+    <div class="insight-title">🔴 关键问题</div>
+    <ol style="padding-left:20px;line-height:2.2">
+      ${DATA.insights.problems.map(p => `<li>${p}</li>`).join('')}
+    </ol>
+  </div>
+  ` : ''}
+  ${DATA.insights.suggestions.length > 0 ? `
+  <div class="insight-box warning" style="margin-top:16px">
+    <div class="insight-title">🟡 优化建议</div>
+    <ol style="padding-left:20px;line-height:2.2">
+      ${DATA.insights.suggestions.map(s => `<li>${s}</li>`).join('')}
+    </ol>
+  </div>
+  ` : ''}
+  ${DATA.insights.positives.length > 0 ? `
+  <div class="insight-box" style="margin-top:16px">
+    <div class="insight-title">🟢 积极信号</div>
+    <ol style="padding-left:20px;line-height:2.2">
+      ${DATA.insights.positives.map(p => `<li>${p}</li>`).join('')}
+    </ol>
+  </div>
+  ` : ''}
+</div>
+
+
+
+<!-- 12. 操作路径明细 -->
+<div class="section">
+  <div class="section-title"><span class="icon">🔍</span> 操作路径明细（requestPath 粒度）</div>
+  <table class="data-table">
+    <thead><tr><th>操作大类</th><th>操作路径</th><th class="num">次数</th><th class="num">占比</th></tr></thead>
+    <tbody>
+      ${generatePathDetailRows(DATA)}
+    </tbody>
+  </table>
+</div>
+
+<div class="report-footer">
+  报告结束 · 数据来源：duiopen.com AI协议中心
+</div>
+`;
+
+// ===== CHARTS =====
+const chartDefaults = {
+  responsive: true,
+  maintainAspectRatio: false,
+  plugins: { legend: { labels: { font: { size: 12 } } } },
+};
+
+// Activity Pie
+new Chart(document.getElementById('chartActivity'), {
+  type: 'doughnut',
+  data: {
+    labels: ['高活跃(≥10次)', '中活跃(3-9次)', '低活跃(1-2次)'],
+    datasets: [{ data: [A.highActive, A.mediumActive, A.lowActive], backgroundColor: ['#F53F3F', '#FF7D00', '#00B42A'], borderWidth: 2, borderColor: '#fff' }]
+  },
+  options: { ...chartDefaults, plugins: { legend: { position: 'bottom' } } }
+});
+
+// User Rank Stacked Bar
+new Chart(document.getElementById('chartUserRank'), {
+  type: 'bar',
+  data: {
+    labels: DATA.userRank.map(u => u.oa),
+    datasets: [
+      { label: '更新次数', data: DATA.userRank.map(u => u.publish), backgroundColor: '#0FC6C2' },
+      { label: '草稿保存', data: DATA.userRank.map(u => u.draft), backgroundColor: '#C9CDD4' },
+    ]
+  },
+  options: { ...chartDefaults, indexAxis: 'y', scales: { x: { stacked: true }, y: { stacked: true } }, plugins: { legend: { position: 'top' } } }
+});
+
+// Daily Trend
+new Chart(document.getElementById('chartDaily'), {
+  type: 'line',
+  data: {
+    labels: DATA.dailyTrend.map(d => d.date.slice(5)),
+    datasets: [{
+      label: '每日操作数', data: DATA.dailyTrend.map(d => d.count),
+      borderColor: '#3491FA', backgroundColor: 'rgba(52,145,250,0.1)',
+      fill: true, tension: 0.3, pointRadius: 4,
+      pointBackgroundColor: ["#F53F3F", "#F53F3F", "#F53F3F", "#F53F3F", "#F53F3F", "#3491FA", "#3491FA", "#3491FA", "#F53F3F", "#F53F3F", "#3491FA", "#3491FA", "#3491FA", "#3491FA", "#3491FA", "#F53F3F", "#F53F3F", "#3491FA", "#3491FA", "#3491FA", "#3491FA", "#3491FA", "#F53F3F", "#F53F3F", "#3491FA", "#3491FA", "#3491FA", "#3491FA", "#3491FA", "#F53F3F", "#F53F3F"],
+    }]
+  },
+  options: { ...chartDefaults, plugins: { legend: { display: false }, title: { display: true, text: '每日操作趋势（红点=周末/假期）', font: { size: 14, weight: '600' } } } }
+});
+
+// Weekly
+new Chart(document.getElementById('chartWeekly'), {
+  type: 'bar',
+  data: {
+    labels: DATA.weeklyTrend.map(w => w.week),
+    datasets: [{ label: '周操作数', data: DATA.weeklyTrend.map(w => w.count), backgroundColor: colors.slice(0, DATA.weeklyTrend.length), borderRadius: 6 }]
+  },
+  options: { ...chartDefaults, plugins: { legend: { display: false }, title: { display: true, text: '按周统计', font: { size: 14, weight: '600' } } } }
+});
+
+// Weekday
+new Chart(document.getElementById('chartWeekday'), {
+  type: 'bar',
+  data: {
+    labels: DATA.weekdayDist.map(w => w.name),
+    datasets: [{ label: '操作数', data: DATA.weekdayDist.map(w => w.count), backgroundColor: ["#3491FA", "#3491FA", "#3491FA", "#3491FA", "#3491FA", "#F53F3F", "#F53F3F"], borderRadius: 6 }]
+  },
+  options: { ...chartDefaults, plugins: { legend: { display: false }, title: { display: true, text: '按星期分布（红色=周末）', font: { size: 14, weight: '600' } } } }
+});
+
+// Hourly
+new Chart(document.getElementById('chartHourly'), {
+  type: 'bar',
+  data: {
+    labels: ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23"],
+    datasets: [{ label: '操作数', data: [5, 32, 3, 3, 2, 6, 2, 4, 112, 806, 1285, 1176, 175, 341, 1214, 1206, 942, 804, 748, 471, 570, 213, 206, 74], backgroundColor: ["#3491FA", "#3491FA", "#3491FA", "#3491FA", "#3491FA", "#3491FA", "#3491FA", "#3491FA", "#3491FA", "#3491FA", "#3491FA", "#3491FA", "#3491FA", "#3491FA", "#3491FA", "#3491FA", "#3491FA", "#3491FA", "#FF7D00", "#FF7D00", "#FF7D00", "#FF7D00", "#FF7D00", "#FF7D00"], borderRadius: 4 }]
+  },
+  options: { ...chartDefaults, plugins: { legend: { display: false }, title: { display: true, text: '按小时分布（橙色=加班时段）', font: { size: 14, weight: '600' } } } }
+});
+
+// Category Pie
+new Chart(document.getElementById('chartCatPie'), {
+  type: 'doughnut',
+  data: {
+    labels: ["草稿保存", "更新操作", "删除操作", "表单维护", "模板维护", "项目管理", "内容导入", "用户设置"],
+    datasets: [{ data: [8489, 1378, 102, 26, 36, 31, 286, 52], backgroundColor: ["#3491FA", "#0FC6C2", "#F53F3F", "#FF7D00", "#722ED1", "#65A2F5", "#00B42A", "#F77234"], borderWidth: 2, borderColor: '#fff' }]
+  },
+  options: { ...chartDefaults, plugins: { legend: { position: 'bottom' }, title: { display: true, text: '操作类别占比', font: { size: 14, weight: '600' } } } }
+});
+
+// Category Bar
+new Chart(document.getElementById('chartCatBar'), {
+  type: 'bar',
+  data: {
+    labels: ["草稿保存", "更新操作", "删除操作", "表单维护", "模板维护", "项目管理", "内容导入", "用户设置"],
+    datasets: [{ data: [8489, 1378, 102, 26, 36, 31, 286, 52], backgroundColor: ["#3491FA", "#0FC6C2", "#F53F3F", "#FF7D00", "#722ED1", "#65A2F5", "#00B42A", "#F77234"], borderRadius: 4 }]
+  },
+  options: { ...chartDefaults, indexAxis: 'y', plugins: { legend: { display: false }, title: { display: true, text: '操作类别次数', font: { size: 14, weight: '600' } } } }
+});
+
+// Projects
+if (DATA.topProjects.length > 0) {
+  new Chart(document.getElementById('chartProjects'), {
+    type: 'bar',
+    data: {
+      labels: DATA.topProjects.slice(0, 10).map(p => p.name.length > 10 ? p.name.slice(0,10)+'…' : p.name),
+      datasets: [{ label: '更新次数', data: DATA.topProjects.slice(0, 10).map(p => p.count), backgroundColor: colors.slice(0, 10), borderRadius: 6 }]
+    },
+    options: { ...chartDefaults, indexAxis: 'y', plugins: { legend: { display: false } } }
+  });
+}
+
+// Top User Projects
+DATA.topUserProjects.forEach((u, i) => {
+  const el = document.getElementById('chartTopUser' + i);
+  if (el) {
+    new Chart(el, {
+      type: 'doughnut',
+      data: {
+        labels: u.projects.map(p => p.name.length > 8 ? p.name.slice(0,8)+'…' : p.name),
+        datasets: [{ data: u.projects.map(p => p.count), backgroundColor: colors.slice(0, u.projects.length), borderWidth: 2, borderColor: '#fff' }]
+      },
+      options: { ...chartDefaults, plugins: { legend: { position: 'bottom', labels: { font: { size: 11 }, boxWidth: 12 } } } }
+    });
+  }
+});
+
+// Form vs Template Publish
+new Chart(document.getElementById('chartFormVsTemplate'), {
+  type: 'doughnut',
+  data: {
+    labels: ['表单更新 ' + O.formUpdatePercent + '%', '模板更新 ' + O.templateUpdatePercent + '%'],
+    datasets: [{ data: [O.formUpdate, O.templateUpdate], backgroundColor: ['#3491FA', '#722ED1'], borderWidth: 2, borderColor: '#fff' }]
+  },
+  options: { ...chartDefaults, plugins: { legend: { position: 'bottom' }, title: { display: true, text: '更新类型占比（表单 vs 模板）', font: { size: 14, weight: '600' } } } }
+});
+
+// Version Pie
+new Chart(document.getElementById('chartVersion'), {
+  type: 'doughnut',
+  data: {
+    labels: ['V1（初版）', 'V2-V5', 'V6-V9', 'V10+（高迭代）'],
+    datasets: [{ data: [DATA.versionDist.V1, DATA.versionDist.V2_V5, DATA.versionDist.V6_V9, DATA.versionDist.V10_plus], backgroundColor: ['#3491FA', '#65A2F5', '#0FC6C2', '#F53F3F'], borderWidth: 2, borderColor: '#fff' }]
+  },
+  options: { ...chartDefaults, plugins: { legend: { position: 'bottom' }, title: { display: true, text: '表单版本迭代分布', font: { size: 14, weight: '600' } } } }
+});
+
+// Template version distribution
+const tvEl = document.getElementById('chartTemplateVersion');
+if (tvEl) {
+  new Chart(tvEl, {
+    type: 'doughnut',
+    data: {
+      labels: ['V1（初版）', 'V2-V5', 'V6-V9', 'V10+（高迭代）'],
+      datasets: [{ data: [DATA.templateVersionDist.V1, DATA.templateVersionDist.V2_V5, DATA.templateVersionDist.V6_V9, DATA.templateVersionDist.V10_plus], backgroundColor: ['#722ED1', '#8E4CCF', '#0FC6C2', '#F53F3F'], borderWidth: 2, borderColor: '#fff' }]
+    },
+    options: { ...chartDefaults, plugins: { legend: { position: 'bottom' }, title: { display: true, text: '模板版本迭代分布', font: { size: 14, weight: '600' } } } }
+  });
+}
+
+// Overtime distribution
+const overtimeEl = document.getElementById('chartOvertimeDist');
+if (overtimeEl) {
+  new Chart(overtimeEl, {
+    type: 'doughnut',
+    data: {
+      labels: ['工作时间操作', '加班操作(18:00后)'],
+      datasets: [{ data: [O.totalOps - DATA.overtime.total, DATA.overtime.total], backgroundColor: ['#3491FA', '#FF7D00'], borderWidth: 2, borderColor: '#fff' }]
+    },
+    options: { ...chartDefaults, plugins: { legend: { position: 'bottom' }, title: { display: true, text: '加班操作占比', font: { size: 14, weight: '600' } } } }
+  });
+}
+
+</script>
+</body>
+</html>
